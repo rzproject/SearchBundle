@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <parameters>
+        <parameter key="rz_search.config_manager.class">Rz\SearchBundle\Model\ConfigManager</parameter>
+    </parameters>
+
+    <services>
+        <service id="rz_search.config_manager" class="%rz_search.config_manager.class%"/>
+    </services>
+</container>

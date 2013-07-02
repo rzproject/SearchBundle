@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <parameters>
+        <parameter key="rz.search.listener.post_update.class">Rz\SearchBundle\Listener\SearchIndexListener</parameter>
+    </parameters>
+
+    <services>
+        <service id="rz.search.listener.post_update" class="%rz.search.listener.post_update.class%">
+            <tag name="doctrine.event_listener" event="postUpdate" />
+            <argument type="service" id="rz_search.config_manager" />
+            <argument type="service" id="solarium.client.default" />
+        </service>
+    </services>
+</container>

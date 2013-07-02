@@ -1,0 +1,28 @@
+{
+    "name": "rz/search-bundle",
+    "type": "symfony-bundle",
+    "description": "Extension of Nelmio solarium symfony2 bundle.",
+    "keywords": ["symfony2", "RZProject"],
+    "homepage": "https://github.com/rzproject/SearchBundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "mell zamora",
+            "email": "mell@rzproject.org",
+            "homepage": "http://www.rzproject.org"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "rmzamora/solarium-bundle": "2.3.*@dev"
+    },
+    "autoload": {
+        "psr-0": { "Rz\\AdminBundle": "" }
+    },
+    "target-dir": "Rz/SearchBundle",
+    "extra": {
+        "branch-alias": {
+            "dev-master": "2.3.x-dev"
+        }
+    }
+}
