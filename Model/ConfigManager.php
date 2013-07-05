@@ -87,18 +87,6 @@ class ConfigManager implements ConfigManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function hasFieldMapSettings($model_id, $field)
-    {
-        if (isset($this->configs[$model_id]['field_map_settings'][$field])) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getFieldMap($model_id, $field)
     {
       return isset($this->configs[$model_id]['field_mapping'][$field]) ? $this->configs[$model_id]['field_mapping'][$field] : null;
@@ -110,65 +98,29 @@ class ConfigManager implements ConfigManagerInterface
     public function getFieldValue($model_id, $entity, $field)
     {
         $getter = 'get'.ucfirst($this->getFieldMap($model_id, $field));
+
         if (!method_exists($entity, $getter)) {
             throw new \RuntimeException(sprintf("Class '%s' should have a method '%s'.", get_class($entity), $getter));
         }
 
-        return $entity->$getter();
-    }
+        $value = $entity->$getter();
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getAssociationValue($entity_id, $entity, $field)
-    {
-        $children = $this->getFieldValue($entity_id, $entity, $field);
-        if ($children instanceof PersistentCollection) {
-            $value = null;
-            foreach ($children as $child) {
-                $value[] =  $this->getAssocFieldValue($child, $this->getFieldMapSettings($entity_id, $field));
+        if ($value instanceof PersistentCollection) {
+            $temp = null;
+            foreach ($value as $child) {
+                $temp[] =  $child->__toString();
             }
-
-            return $value ? implode(',', $value) : null;
+            return $temp;
+        } elseif(is_object($value) && !($value instanceof \DateTime)) {
+            return $value->__toString();
         } else {
-            return $this->getAssocFieldValue($children, $this->getFieldMapSettings($entity_id, $field));
-        }
-    }
-
-    public function getAssocFieldValue($entity, $settings)
-    {
-        if (is_array($settings['fields'])) {
-            $value = null;
-            foreach ($settings['fields'] as $field) {
-                $getter = $this->getter($field);
-                if (!method_exists($entity, $getter)) {
-                    throw new \RuntimeException(sprintf("Class '%s' should have a method '%s'.", get_class($entity), $getter));
-                }
-                $value[] =  $entity->$getter();
-            }
-
-            return $value ? implode(',', $value) : null;
-        } else {
-            $getter = $this->getter($settings['fields']);
-            if (!method_exists($entity, $getter)) {
-                throw new \RuntimeException(sprintf("Class '%s' should have a method '%s'.", get_class($entity), $getter));
-            }
-
-            return $entity->$getter();
+            return $value;
         }
     }
 
     protected function getter($field)
     {
         return 'get'.ucfirst($field);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getFieldMapSettings($model_id, $field)
-    {
-        return isset($this->configs[$model_id]['field_map_settings'][$field]) ? $this->configs[$model_id]['field_map_settings'][$field] : null;
     }
 
     /**

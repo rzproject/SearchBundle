@@ -61,19 +61,19 @@ class SearchIndexListener
 
         foreach ($indexFields as $field) {
             $value = null;
-            if ($this->configManager->hasFieldMapSettings($entity_id, $field)) {
-                $value = $this->configManager->getAssociationValue($entity_id, $entity, $field);
-            } else {
-                $value = $this->configManager->getFieldValue($entity_id, $entity, $field);
-            }
-
+            $value = $this->configManager->getFieldValue($entity_id, $entity, $field);
             try {
-                $doc->setField($field, $value);
+                if (is_array($value)) {
+                    foreach($value as $val) {
+                        $doc->addField($field, $val);
+                    }
+                } else {
+                    $doc->setField($field, $value);
+                }
             } catch (\Exception $e) {
                 throw $e;
             }
         }
-
         // add the documents and a commit command to the update query
         $update->addDocuments(array($doc));
         $update->addCommit();
