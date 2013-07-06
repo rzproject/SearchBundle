@@ -1,0 +1,27 @@
+<h1>{{ resultset.getNumFound() }} Search Results</h1>
+
+<div class="sonata-blog-post-list">
+    {% for result in resultset %}
+        {% set result_item = result.getFields() %}
+        <div class="sonata-blog-post-container">
+            <h2 class="sonata-blog-post-title">
+                <a href="#">{{ result_item.title }}</a>
+                <span class="sonata-blog-post-author">{{ result_item.author }}</span>
+            </h2>
+            <div class="sonata-blog-post-information">
+
+                <div class="sonata-blog-post-tag-container">
+                    <div class="sonata-blog-post-tag-title">
+
+                        {% set highlight = highlighting.getResult(result.id)  %}
+                        {{ dump(highlight) }}
+
+                        {{ result_item.description  }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        {{ 'no_post_found'|trans({}, 'SonataNewsBundle') }}
+    {% endfor %}
+</div>

@@ -29,6 +29,12 @@ class SearchController extends Controller
             // get a select query instance
             $query = $client->createSelect();
 
+            // get highlighting component and apply settings
+            $hl = $query->getHighlighting();
+            $hl->setFields('content, description, title');
+            $hl->setSimplePrefix('<b>');
+            $hl->setSimplePostfix('</b>');
+
             // set a query (all prices starting from 12)
             //$query->setQuery($search);
             $query->setQuery(sprintf('text:%s',$search));
@@ -38,30 +44,30 @@ class SearchController extends Controller
 
             // this executes the query and returns the result
             $resultset = $client->select($query);
+            $highlighting = $resultset->getHighlighting();
 
             // display the total number of documents found by solr
-            echo 'NumFound: '.$resultset->getNumFound();
+            //echo 'NumFound: '.$resultset->getNumFound();
 
-            // show documents using the resultset iterator
-            foreach ($resultset as $document) {
+//            // show documents using the resultset iterator
+//            foreach ($resultset as $document) {
+//
+//                echo '<hr/><table>';
+//
+//                // the documents are also iterable, to get all fields
+//                foreach($document AS $field => $value)
+//                {
+//                    // this converts multivalue fields to a comma-separated string
+//                    if(is_array($value)) $value = implode(', ', $value);
+//
+//                    echo '<tr><th>' . $field . '</th><td>' . $value . '</td></tr>';
+//                }
+//
+//                echo '</table>';
+//            }
 
-                echo '<hr/><table>';
-
-                // the documents are also iterable, to get all fields
-                foreach($document AS $field => $value)
-                {
-                    // this converts multivalue fields to a comma-separated string
-                    if(is_array($value)) $value = implode(', ', $value);
-
-                    echo '<tr><th>' . $field . '</th><td>' . $value . '</td></tr>';
-                }
-
-                echo '</table>';
-            }
+            $response = $this->render('RzSearchBundle::results.html.twig', array('resultset'=>$resultset, 'highlighting'=>$highlighting));
+            return $response;
         }
-
-
-        var_dump($search);
-        die();
     }
 }
