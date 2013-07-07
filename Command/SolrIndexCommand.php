@@ -28,7 +28,7 @@ class SolrIndexCommand extends ContainerAwareCommand
         $output->getFormatter()->setStyle('rz-err', $error_style);
 
         if ($entity) {
-            $output->writeln(sprintf('<info>Indexing entity for configuration: <rz-msg>%s</rz-msg></info>', $entity));
+            $output->writeln(sprintf('<info>Indexing entity: <rz-msg>%s</rz-msg></info>', $entity));
             $entity_id = preg_replace('/\//', '.', strtolower($entity));
 
             $configManager = $this->getContainer()->get('rz_search.config_manager');
@@ -38,12 +38,15 @@ class SolrIndexCommand extends ContainerAwareCommand
             $data = $modelManager->findAll();
 
             $doc = array();
-            $batch_count = 0;
             $len = count($data);
             $i = 0;
             $result = array();
             //TODO add pager for bulk index
             //for now pager is hard coded
+            $batch_count = 0;
+
+            $progress = $this->getHelperSet()->get('progress');
+            $progress->start($output, $i);
 
             foreach($data as $model) {
                 if ($configManager->hasConfig($entity_id)) {
@@ -67,7 +70,11 @@ class SolrIndexCommand extends ContainerAwareCommand
                     }
                 }
                 $i++;
+                $progress->advance();
+                sleep(.25);
             }
+            $progress->finish();
+            $output->writeln(sprintf('<info>Finish indexing: <rz-msg>%s</rz-msg></info>', $entity));
         } else {
             $output->writeln('<rz-err>Option entity required!</rz-err>');
         }
