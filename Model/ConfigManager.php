@@ -11,7 +11,7 @@
 
 namespace Rz\SearchBundle\Model;
 
-use Rz\CkeditorBundle\Exception\ConfigManagerException;
+use Rz\SearchBundle\Exception\ConfigManagerException;
 use Doctrine\ORM\PersistentCollection;
 
 class ConfigManager implements ConfigManagerInterface
@@ -91,6 +91,24 @@ class ConfigManager implements ConfigManagerInterface
     {
       return isset($this->configs[$model_id]['field_mapping'][$field]) ? $this->configs[$model_id]['field_mapping'][$field] : null;
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getModelIdentifier($model_id)
+    {
+        return isset($this->configs[$model_id]['model_identifier']) ? $this->configs[$model_id]['model_identifier'] : null;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getModelManager($model_id)
+    {
+        return isset($this->configs[$model_id]['model_manager']) ? $this->configs[$model_id]['model_manager'] : null;
+    }
+
+
 
     /**
      * {@inheritdoc}

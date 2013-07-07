@@ -55,7 +55,9 @@ class SearchIndexListener
         $update = $this->searchClient->createUpdate();
         // create a new document for the data
         $doc = $update->createDocument();
-        $doc->setField('id', $entity_id.'_'.$entity->getId());
+        $doc->setField('id', $this->configManager->getModelIdentifier($entity_id).'_'.$entity->getId());
+        $doc->setField('model_id', $entity->getId());
+        $doc->setField('index_type', $entity_id);
 
         $indexFields = $this->configManager->getIndexFields($entity_id);
 
