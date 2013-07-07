@@ -34,6 +34,8 @@ class RzSearchExtension extends Extension
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('listener.xml');
         $loader->load('search.xml');
+        $loader->load('twig.xml');
+        $loader->load('block.xml');
         $this->registerSearchSettings($config, $container);
     }
 

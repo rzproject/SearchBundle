@@ -12,11 +12,8 @@
 
                 <div class="sonata-blog-post-tag-container">
                     <div class="sonata-blog-post-tag-title">
-
                         {% set highlight = highlighting.getResult(result.id)  %}
-                        {{ dump(highlight) }}
-
-                        {{ result_item.description  }}
+                        {{ highlight | rz_search_highlight | raw }}
                     </div>
                 </div>
             </div>

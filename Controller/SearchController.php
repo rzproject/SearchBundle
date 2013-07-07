@@ -9,16 +9,19 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 use Symfony\Component\Form\Form;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 
 class SearchController extends Controller
 {
     /**
-     * @param null $search
+     *
+     * @param \Symfony\Component\HttpFoundation\Request $request
      *
      * @return RedirectResponse
      */
-    public function searchAction($search = null)
+    public function searchAction(Request $request)
     {
+        $search = $request->query->get('rz_q');
 
         if (NULL !== $search) {
             $config = $this->get('rz_search.config_manager');
@@ -46,27 +49,10 @@ class SearchController extends Controller
             $resultset = $client->select($query);
             $highlighting = $resultset->getHighlighting();
 
-            // display the total number of documents found by solr
-            //echo 'NumFound: '.$resultset->getNumFound();
-
-//            // show documents using the resultset iterator
-//            foreach ($resultset as $document) {
-//
-//                echo '<hr/><table>';
-//
-//                // the documents are also iterable, to get all fields
-//                foreach($document AS $field => $value)
-//                {
-//                    // this converts multivalue fields to a comma-separated string
-//                    if(is_array($value)) $value = implode(', ', $value);
-//
-//                    echo '<tr><th>' . $field . '</th><td>' . $value . '</td></tr>';
-//                }
-//
-//                echo '</table>';
-//            }
-
             $response = $this->render('RzSearchBundle::results.html.twig', array('resultset'=>$resultset, 'highlighting'=>$highlighting));
+            return $response;
+        } else {
+            $response = $this->render('RzSearchBundle::no_results.html.twig');
             return $response;
         }
     }
