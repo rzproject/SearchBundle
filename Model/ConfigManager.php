@@ -153,4 +153,9 @@ class ConfigManager implements ConfigManagerInterface
 
         return $indexFields;
     }
+
+    public function getResultTemplate($model_id)
+    {
+        return isset($this->configs[$model_id]['results']['template']) ? $this->configs[$model_id]['results']['template'] : null;
+    }
 }

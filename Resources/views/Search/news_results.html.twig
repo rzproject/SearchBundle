@@ -1,0 +1,43 @@
+<div class="rz-search-list-container">
+    <h4 class="rz-search-list-title">
+        <a href="#">{{ result.title }}</a> | <b>{{ result.author }}</b>
+    </h4>
+    <div class="srz-search-list-author">
+        {% if result.category is defined  %}
+            <p class="rz-search-list-category">Category:
+            {% for category in  result.category %}
+                <b>{{ category }}</b>
+            {% endfor %}
+            </p>
+        {% endif %}
+    </div>
+    <div class="srz-search-list-information">
+        <div class="srz-search-list-container">
+            <div class="srz-search-list-content">
+                <div class="row-fluid">
+                    <div class="span12">{{ result.description }}</div>
+                </div>
+                {% set highlight = highlighting.getResult(result.id)  %}
+                {%  set highlighted =  highlight | rz_search_highlight %}
+                {% if highlighted %}
+                <div class="row-fluid">
+                    <div class="span12">
+                    <blockquote>
+                    <p><small>... {{ highlighted | raw }} ...</small></p>
+                    </blockquote>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="row-fluid">
+                    <div class="span12">
+                        <ul class="inline">
+                        {% for tags in  result.tags %}
+                            <li class="">{{ tags }}</li>
+                        {% endfor %}
+                        <ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

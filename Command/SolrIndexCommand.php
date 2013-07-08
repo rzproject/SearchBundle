@@ -106,6 +106,7 @@ class SolrIndexCommand extends ContainerAwareCommand
                 throw $e;
             }
         }
+
         return $doc;
     }
 }

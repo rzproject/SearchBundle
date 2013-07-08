@@ -43,7 +43,7 @@ class SearchController extends Controller
 
         // get highlighting component and apply settings
         $hl = $query->getHighlighting();
-        $hl->setFields('content, description, title, tags');
+        $hl->setFields('*');
         $hl->setSimplePrefix('<b>');
         $hl->setSimplePostfix('</b>');
 
@@ -52,7 +52,7 @@ class SearchController extends Controller
         $query->setQuery(sprintf('text:%s',$search));
 
         // set start and rows param (comparable to SQL limit) using fluent interface
-        //$query->setStart(10)->setRows(20);
+        $query->setStart(0)->setRows(20);
 
         // this executes the query and returns the result
         $resultset = $client->select($query);

@@ -10,6 +10,8 @@
     <services>
         <service id="rz.search.twig.extension" class="%rz_search.twig.form_extension.class%">
             <tag name="twig.extension" />
+            <argument type="service" id="rz_search.config_manager" />
+            <argument type="service" id="router" />
         </service>
     </services>
 </container>
