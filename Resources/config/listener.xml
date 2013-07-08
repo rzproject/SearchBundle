@@ -12,6 +12,7 @@
             <tag name="doctrine.event_listener" event="postUpdate" />
             <argument type="service" id="rz_search.config_manager" />
             <argument type="service" id="solarium.client.default" />
+            <argument type="service" id="service_container" />
         </service>
     </services>
 </container>

@@ -14,11 +14,13 @@ namespace Rz\SearchBundle\Listener;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Rz\SearchBundle\Model\ConfigManagerInterface;
 use Solarium\Core\Configurable as SearchClient;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class SearchIndexListener
 {
     protected $configManager;
     protected $searchClient;
+    protected $container;
 
     /**
      * Constructor
@@ -26,11 +28,12 @@ class SearchIndexListener
      * @param \Rz\SearchBundle\Model\ConfigManagerInterface $configManager
      * @param \Solarium\Core\Configurable                   $searchClient
      */
-    public function __construct(ConfigManagerInterface $configManager, SearchClient $searchClient)
+    public function __construct(ConfigManagerInterface $configManager, SearchClient $searchClient, ContainerInterface $container)
     {
         $this->configManager = $configManager;
         //TODO : add abstraction layer for client. Hard coded for now
         $this->searchClient = $searchClient;
+        $this->container = $container;
     }
 
     public function postUpdate(LifecycleEventArgs $args)
@@ -58,6 +61,9 @@ class SearchIndexListener
         $doc->setField('id', $this->configManager->getModelIdentifier($entity_id).'_'.$entity->getId());
         $doc->setField('model_id', $entity->getId());
         $doc->setField('index_type', $entity_id);
+        // generate route
+        $routeGenerator = $this->container->get($this->configManager->getFieldRouteGenerator($entity_id));
+        $doc->setField('url', $routeGenerator->generate($entity));
 
         $indexFields = $this->configManager->getIndexFields($entity_id);
 
@@ -76,6 +82,8 @@ class SearchIndexListener
                 throw $e;
             }
         }
+        var_dump($doc);
+        die();
         // add the documents and a commit command to the update query
         $update->addDocuments(array($doc));
         $update->addCommit();
