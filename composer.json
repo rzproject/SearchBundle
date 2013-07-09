@@ -14,7 +14,8 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "rmzamora/solarium-bundle": "2.3.*@dev"
+        "rmzamora/solarium-bundle": "2.3.*@dev",
+        "white-october/pagerfanta-bundle": "~1.0"
     },
     "autoload": {
         "psr-0": { "Rz\\SearchBundle": "" }
