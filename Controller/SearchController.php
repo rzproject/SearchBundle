@@ -3,11 +3,6 @@
 namespace Rz\SearchBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Security\Core\Exception\AccessDeniedException;
-
-use Symfony\Component\Form\Form;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Pagerfanta\Adapter\SolariumAdapter;
@@ -35,9 +30,6 @@ class SearchController extends Controller
             return $response;
         }
 
-        $config = $this->get('rz_search.config_manager');
-
-        //var_dump($config);
         $client = $this->get('solarium.client');
 
         // get a select query instance
@@ -50,26 +42,15 @@ class SearchController extends Controller
         $hl->setSimplePostfix('</span>');
 
         // set a query (all prices starting from 12)
-        //$query->setQuery($search);
         $query->setQuery(sprintf('text:%s',$search));
 
         // set start and rows param (comparable to SQL limit) using fluent interface
-        //$query->setStart(0)->setRows(20);
-        //$pager = new Pagerfanta(new SolariumAdapter($client, $query));
         $adapter = new SolariumAdapter($client, $query);
         $pager = new Pagerfanta($adapter);
         $pager->setMaxPerPage(10);
         $page = $request->query->get('page') ? $request->query->get('page') : 1;
         $pager->setCurrentPage($page, false, true);
 
-//        $resultset = $pager->getCurrentPageResults();
-//        $highlighting = $resultset->getHighlighting();
-
-        // this executes the query and returns the result
-//        $resultset = $client->select($query);
-//        $highlighting = $resultset->getHighlighting();
-//
-        //$response = $this->render('RzSearchBundle::results.html.twig', array('resultset'=>$resultset, 'highlighting'=>$highlighting, 'pager'=>$pager));
         $response = $this->render('RzSearchBundle::results.html.twig', array('pager'=>$pager));
         return $response;
     }
