@@ -1,9 +1,14 @@
-<h1>{{ resultset.getNumFound() }} Search Results</h1>
+<h1>{{ pager.getNbResults }} Search Results</h1>
 <div class="sonata-blog-post-list">
-    {% for result in resultset %}
-        {% set content= rz_search_render_result(result, highlighting) %}
+    {% set results = pager.getAdapter.getResultSet %}
+    {% set highlight = results.getHighlighting %}
+    {% for result in results %}
+        {% set content= rz_search_render_result(result, highlight) %}
         {{  content | raw }}
     {% else %}
         {{ 'no_post_found'|trans({}, 'SonataNewsBundle') }}
     {% endfor %}
+    {% if pager.haveToPaginate %}
+        {{ pagerfanta(pager, 'rz_search_pagerfanta') }}
+    {% endif %}
 </div>

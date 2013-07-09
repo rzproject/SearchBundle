@@ -75,7 +75,7 @@ class SearchHighlightExtension extends \Twig_Extension
         $text = array();
         if($hightlight){
             foreach($hightlight as $field => $highlight) {
-                $text[] = strip_tags(implode(' (...) ', $highlight), '<b>');
+                $text[] = strip_tags(implode(' (...) ', $highlight), '<span>');
             }
         }
         return implode("\n", $text);
@@ -93,7 +93,7 @@ class SearchHighlightExtension extends \Twig_Extension
         if($hightlight){
             foreach($hightlight as $field => $highlight) {
                 var_dump($field);
-                $text[] = strip_tags(implode(' (...) ', $highlight), '<b>');
+                $text[] = strip_tags(implode(' (...) ', $highlight), '<span>');
             }
         }
         return implode("\n", $text);

@@ -36,6 +36,7 @@ class RzSearchExtension extends Extension
         $loader->load('search.xml');
         $loader->load('twig.xml');
         $loader->load('block.xml');
+        $loader->load('pagerfanta.xml');
         $this->registerSearchSettings($config, $container);
     }
 
