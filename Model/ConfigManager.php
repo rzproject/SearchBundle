@@ -166,4 +166,9 @@ class ConfigManager implements ConfigManagerInterface
     {
         return isset($this->configs[$model_id]['route_generator']) ? $this->configs[$model_id]['route_generator'] : null;
     }
+
+    public function getFieldRoute($model_id)
+    {
+        return isset($this->configs[$model_id]['route']) ? $this->configs[$model_id]['route'] : null;
+    }
 }

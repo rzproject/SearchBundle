@@ -89,6 +89,11 @@ class SolrIndexCommand extends ContainerAwareCommand
         $doc->setField('model_id', $entity->getId());
         $doc->setField('index_type', $entity_id);
 
+        // generate route
+        $route = $configManager->getFieldRouteGenerator($entity_id);
+        $routeGenerator = $this->getContainer()->get($configManager->getFieldRouteGenerator($entity_id));
+        $doc->setField('url', $routeGenerator->generate($entity));
+
         $indexFields = $configManager->getIndexFields($entity_id);
 
         foreach ($indexFields as $field) {

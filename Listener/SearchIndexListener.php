@@ -26,9 +26,10 @@ class SearchIndexListener
      * Constructor
      *
      * @param \Rz\SearchBundle\Model\ConfigManagerInterface $configManager
-     * @param \Solarium\Core\Configurable                   $searchClient
+     * @param \Solarium\Core\Configurable $searchClient
+     * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
      */
-    public function __construct(ConfigManagerInterface $configManager, SearchClient $searchClient, ContainerInterface $container)
+    public function __construct(ContainerInterface $container, ConfigManagerInterface $configManager, SearchClient $searchClient)
     {
         $this->configManager = $configManager;
         //TODO : add abstraction layer for client. Hard coded for now
@@ -82,8 +83,6 @@ class SearchIndexListener
                 throw $e;
             }
         }
-        var_dump($doc);
-        die();
         // add the documents and a commit command to the update query
         $update->addDocuments(array($doc));
         $update->addCommit();

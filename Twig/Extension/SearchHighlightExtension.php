@@ -61,7 +61,8 @@ class SearchHighlightExtension extends \Twig_Extension
 
     public function render($result, $highlight) {
         $template = $this->configManager->getResultTemplate($result->getFields()['index_type']);
-        return $this->environment->render($template, array('result'=>$result, 'highlighting'=>$highlight));
+        $route = $this->configManager->getFieldRoute($result->getFields()['index_type']);
+        return $this->environment->render($template, array('result'=>$result, 'highlighting'=>$highlight, 'route'=>$route));
     }
 
     /**
