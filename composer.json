@@ -14,7 +14,8 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "rmzamora/solarium-bundle": "2.3.*@dev",
+    	"symfony/framework-bundle": "~2.4",
+        "solarium/solarium": "~3.0",
         "white-october/pagerfanta-bundle": "~1.0"
     },
     "autoload": {
