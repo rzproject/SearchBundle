@@ -45,6 +45,7 @@ class Configuration implements ConfigurationInterface
                     ->children()
                         ->arrayNode('solr')
                             ->children()
+                                ->scalarNode('default_client')->cannotBeEmpty()->defaultValue('default')->end()
                                 ->arrayNode('endpoints')
                                     ->canBeUnset()
                                     ->useAttributeAsKey('name')
