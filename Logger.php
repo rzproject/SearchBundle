@@ -1,6 +1,6 @@
 <?php
 
-namespace Nelmio\SolariumBundle;
+namespace Rz\SearchBundle;
 
 use Solarium\Core\Client\Request as SolariumRequest;
 use Solarium\Core\Client\Response as SolariumResponse;

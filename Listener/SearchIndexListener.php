@@ -13,8 +13,12 @@ namespace Rz\SearchBundle\Listener;
 
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Rz\SearchBundle\Model\ConfigManagerInterface;
-use Solarium\Core\Configurable as SearchClient;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use ZendSearch\Lucene\Document;
+use ZendSearch\Lucene\Document\Field;
+use ZendSearch\Lucene\Index\Term;
+use ZendSearch\Lucene\Search\Query\Term as QueryTerm;
+
 
 class SearchIndexListener
 {
@@ -25,16 +29,37 @@ class SearchIndexListener
     /**
      * Constructor
      *
-     * @param \Rz\SearchBundle\Model\ConfigManagerInterface $configManager
-     * @param \Solarium\Core\Configurable $searchClient
      * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+     * @param \Rz\SearchBundle\Model\ConfigManagerInterface $configManager
      */
-    public function __construct(ContainerInterface $container, ConfigManagerInterface $configManager, SearchClient $searchClient)
+    public function __construct(ContainerInterface $container, ConfigManagerInterface $configManager)
     {
         $this->configManager = $configManager;
-        //TODO : add abstraction layer for client. Hard coded for now
-        $this->searchClient = $searchClient;
         $this->container = $container;
+
+        if ($this->container->getParameter('rz_search.engine.solr.enabled')) {
+            $this->searchClient = $this->container->get('solarium.client.default');
+        } elseif ($this->container->getParameter('rz_search.engine.zend_lucene.enabled')) {
+            $this->searchClient = $this->container->get('rz_search.zend_lucene');
+        }
+    }
+
+    public function postPersist(LifecycleEventArgs $args)
+    {
+        //TODO : find a more efficient way to detect config
+        $entity = $args->getEntity();
+        $entity_id = preg_replace('/\\\\/', '.', strtolower(get_class($entity)));
+        if ($this->configManager->hasConfig($entity_id)) {
+            try {
+                if ($this->container->getParameter('rz_search.engine.solr.enabled')) {
+                    $this->indexDataSolr('insert', $entity, $entity_id);
+                } elseif ($this->container->getParameter('rz_search.engine.zend_lucene.enabled')) {
+                    $this->indexDataZendLucene('insert', $entity, $entity_id);
+                }
+            } catch (\Exception $e) {
+                throw $e;
+            }
+        }
     }
 
     public function postUpdate(LifecycleEventArgs $args)
@@ -42,19 +67,76 @@ class SearchIndexListener
         //TODO : find a more efficient way to detect config
         $entity = $args->getEntity();
         $entity_id = preg_replace('/\\\\/', '.', strtolower(get_class($entity)));
-
-        //$entityManager = $args->getEntityManager();
         if ($this->configManager->hasConfig($entity_id)) {
             try {
-                $result = $this->indexData($entity, $entity_id);
+                if ($this->container->getParameter('rz_search.engine.solr.enabled')) {
+                    $this->indexDataSolr('update', $entity, $entity_id);
+                } elseif ($this->container->getParameter('rz_search.engine.zend_lucene.enabled')) {
+                    $this->indexDataZendLucene('update', $entity, $entity_id);
+                }
             } catch (\Exception $e) {
-              var_dump($e);
-              die();
+                throw $e;
             }
         }
     }
 
-    protected function indexData($entity, $entity_id)
+    protected function indexDataZendLucene($type, $entity, $entity_id)
+    {
+        $index = $this->container->get('rz_search.zend_lucene')->getIndex($entity_id);
+
+        $id = $this->configManager->getModelIdentifier($entity_id).'_'.$entity->getId();
+
+
+        if ($type == 'update') {
+            $term = new Term($id, 'uuid');
+            $docIds = $index->termDocs($term);
+            if($docIds) {
+                foreach ($docIds as $docId) {
+                    $index->delete($docId);
+                }
+            }
+        }
+
+        // Create a new document
+        $doc = new Document();
+
+        $doc->addField(Field::keyword('uuid', $id));
+        $doc->addField(Field::keyword('model_id', $entity->getId()));
+        $doc->addField(Field::keyword('index_type', $entity_id));
+
+        // generate route
+        $routeGenerator = $this->container->get($this->configManager->getFieldRouteGenerator($entity_id));
+        $doc->addField(Field::unIndexed('url', $routeGenerator->generate($entity)));
+
+        $indexFields = $this->configManager->getIndexFields($entity_id);
+
+        foreach ($indexFields as $field) {
+            $value = null;
+            $settings = $this->configManager->getIndexFieldSettings($entity_id, $field);
+            $value = $this->configManager->getFieldValue($entity_id, $entity, $field);
+
+            try {
+                if (is_array($value)) {
+                    foreach($value as $val) {
+                        $doc->addField(Field::$settings['type']($field, $val));
+                    }
+                } else {
+                    $doc->addField(Field::$settings['type']($field, $value));
+                }
+            } catch (\Exception $e) {
+                throw $e;
+            }
+        }
+
+        // Add your document to the index
+        $index->addDocument($doc);
+        // Commit your change
+        $index->commit();
+        // If you want you can optimize your index
+        $index->optimize();
+    }
+
+    protected function indexDataSolr($type, $entity, $entity_id)
     {
         $update = $this->searchClient->createUpdate();
         // create a new document for the data

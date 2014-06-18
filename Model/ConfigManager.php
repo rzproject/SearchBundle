@@ -154,6 +154,19 @@ class ConfigManager implements ConfigManagerInterface
         return $indexFields;
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function getIndexFieldSettings($model_id, $field)
+    {
+
+        if (array_key_exists($field, $this->getConfig($model_id)['field_map_settings'])) {
+            return $this->getConfig($model_id)['field_map_settings'][$field];
+        } else {
+            return;
+        }
+    }
+
     public function getResultTemplate($model_id)
     {
         return isset($this->configs[$model_id]['results']['template']) ? $this->configs[$model_id]['results']['template'] : null;
