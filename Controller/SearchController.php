@@ -20,6 +20,7 @@ class SearchController extends Controller
     public function searchAction(Request $request)
     {
         $search = $request->query->get('rz_q');
+        $type = $request->query->get('rz_type');
 
         if ( $search === '') {
             $response = $this->render('RzSearchBundle::empty.html.twig');
@@ -33,7 +34,7 @@ class SearchController extends Controller
 
 
         if ($this->container->getParameter('rz_search.engine.solr.enabled')) {
-            $client = $this->container->get('solarium.client.default');
+            $client = $this->container->get(sprintf('solarium.client.%s', $type));
             // get a select query instance
             $query = $client->createSelect();
 

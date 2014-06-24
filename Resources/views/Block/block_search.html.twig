@@ -7,6 +7,7 @@
     <div class="rz-search-block-search-container">
         <form action="{{ path("rz_search_default") }}" class="form-search" method="GET">
             <input type="text" class="input-medium search-query" name="rz_q" value="{{ rz_q }}">
+            <input type="hidden" class="input-medium search-query" name="rz_type" value="{{ settings.filter }}">
             <button type="submit" class="btn">Search</button>
         </form>
     </div>

@@ -68,12 +68,12 @@ class SearchBlockService extends BaseBlockService
      */
     public function buildEditForm(FormMapper $formMapper, BlockInterface $block)
     {
+       $configs = $this->container->get('rz_search.config_manager')->getConfigNames();
+
         $formMapper->add('settings', 'sonata_type_immutable_array', array(
                        'keys' => array(
                            array('title', 'text', array('required' => false, 'label'=> 'Title')),
-                           array('filter', 'choice', array('choices' => array('all'  => 'All',
-                                                                              'news' => 'News',
-                                                                              'page' => 'Page'),
+                           array('filter', 'choice', array('choices' => $configs,
                                                            'selectpicker_dropup' => true,
                                                            'label'=> 'Filter'
                            )),
