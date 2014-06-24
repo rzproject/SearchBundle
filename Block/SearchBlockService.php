@@ -68,19 +68,15 @@ class SearchBlockService extends BaseBlockService
      */
     public function buildEditForm(FormMapper $formMapper, BlockInterface $block)
     {
-//        $contextChoices = $this->getContextChoices();
-//        $formatChoices = $this->getFormatChoices($block->getSetting('mediaId'));
-//
-//        $translator = $this->container->get('translator');
-
         $formMapper->add('settings', 'sonata_type_immutable_array', array(
                        'keys' => array(
-                           array('title', 'text', array('required' => false)),
-                           array('filter', 'choice', array('choices' => array(
-                               'all'  => 'All',
-                               'news' => 'News',
-                               'page' => 'Page'
-                           ))),
+                           array('title', 'text', array('required' => false, 'label'=> 'Title')),
+                           array('filter', 'choice', array('choices' => array('all'  => 'All',
+                                                                              'news' => 'News',
+                                                                              'page' => 'Page'),
+                                                           'selectpicker_dropup' => true,
+                                                           'label'=> 'Filter'
+                           )),
                        )
                    ));
     }
@@ -99,15 +95,6 @@ class SearchBlockService extends BaseBlockService
                  ), $response);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-//    public function getStylesheets($media)
-//    {
-//        return array(
-//            '/bundles/sonatamedia/blocks/feature_media/theme.css'
-//        );
-//    }
 
     /**
      * @param ErrorElement   $errorElement

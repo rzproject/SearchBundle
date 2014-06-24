@@ -195,7 +195,7 @@ class RzSearchExtension extends Extension
             $definition = $container->getDefinition('rz_search.config_manager');
             foreach ($config['configs'] as $name => $configuration) {
                 if ($configuration['model_class']) {
-                    $name = preg_replace('/\\\\/', '.', strtolower($configuration['model_class']));
+                    //$name = preg_replace('/\\\\/', '.', strtolower($configuration['model_class']));
                     $definition->addMethodCall('setConfig', array($name, $configuration));
                 }
             }

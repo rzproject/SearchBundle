@@ -167,9 +167,9 @@ class ConfigManager implements ConfigManagerInterface
         }
     }
 
-    public function getResultTemplate($model_id)
+    public function getResultTemplate($model_id, $type = 'solr')
     {
-        return isset($this->configs[$model_id]['results']['template']) ? $this->configs[$model_id]['results']['template'] : null;
+        return isset($this->configs[$model_id]['template'][$type]) ? $this->configs[$model_id]['template'][$type] : null;
     }
 
     /**
@@ -183,5 +183,10 @@ class ConfigManager implements ConfigManagerInterface
     public function getFieldRoute($model_id)
     {
         return isset($this->configs[$model_id]['route']) ? $this->configs[$model_id]['route'] : null;
+    }
+
+    public function getModelId($id) {
+
+        return isset($this->configs[$id]['model_class']) ? preg_replace('/\\\\/', '.', strtolower($this->configs[$id]['model_class'])) : null;
     }
 }

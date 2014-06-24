@@ -36,7 +36,8 @@ class SearchHighlightExtension extends \Twig_Extension
     public function getFunctions()
     {
         return array(
-            new \Twig_SimpleFunction('rz_search_render_result', array($this, 'render')),
+            new \Twig_SimpleFunction('rz_search_render_solr_result', array($this, 'renderSolr')),
+            new \Twig_SimpleFunction('rz_search_render_lucene_result', array($this, 'renderLucene')),
         );
     }
 
@@ -59,10 +60,18 @@ class SearchHighlightExtension extends \Twig_Extension
         return 'rz_search';
     }
 
-    public function render($result, $highlight) {
-        $template = $this->configManager->getResultTemplate($result->getFields()['index_type']);
-        $route = $this->configManager->getFieldRoute($result->getFields()['index_type']);
+    public function renderSolr($id, $result, $highlight) {
+        $template = $this->configManager->getResultTemplate($id, 'solr');
+        $route = $this->configManager->getFieldRoute($id);
         return $this->environment->render($template, array('result'=>$result, 'highlighting'=>$highlight, 'route'=>$route));
+    }
+
+    public function renderLucene($id, $result, $highlight = null) {
+        //hard coded
+
+        $template = $this->configManager->getResultTemplate($id, 'lucene');
+        $route = $this->configManager->getFieldRoute($id);
+        return $this->environment->render($template, array('result'=>$result, 'route'=>$route));
     }
 
     /**
@@ -92,7 +101,6 @@ class SearchHighlightExtension extends \Twig_Extension
         $text = array();
         if($hightlight){
             foreach($hightlight as $field => $highlight) {
-                var_dump($field);
                 $text[] = strip_tags(implode(' (...) ', $highlight), '<span>');
             }
         }
