@@ -20,6 +20,7 @@ class SearchController extends Controller
     public function searchAction(Request $request)
     {
         $search = $request->query->get('rz_q');
+        $type = $request->query->get('rz_type');
 
         if ( $search === '') {
             $response = $this->render('RzSearchBundle::empty.html.twig');
@@ -33,7 +34,7 @@ class SearchController extends Controller
 
 
         if ($this->container->getParameter('rz_search.engine.solr.enabled')) {
-            $client = $this->container->get('solarium.client.default');
+            $client = $this->container->get(sprintf('solarium.client.%s', $type));
             // get a select query instance
             $query = $client->createSelect();
 
@@ -55,7 +56,7 @@ class SearchController extends Controller
             $response = $this->render('RzSearchBundle::solr_results.html.twig', array('pager'=>$pager));
 
         } elseif ($this->container->getParameter('rz_search.engine.zend_lucene.enabled')) {
-            $client = $this->container->get('rz_search.zend_lucene')->getIndex('application.sonata.newsbundle.entity.post');
+            $client = $this->container->get('rz_search.zend_lucene')->getIndex($type);
 
             $result =$client->find($search);
             $nbResults = count($result);

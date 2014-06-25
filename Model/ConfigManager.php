@@ -77,8 +77,8 @@ class ConfigManager implements ConfigManagerInterface
     }
 
     /**
- * {@inheritdoc}
- */
+     * {@inheritdoc}
+     */
     public function setConfig($name, array $config)
     {
         $this->configs[$name] = $config;
@@ -89,7 +89,7 @@ class ConfigManager implements ConfigManagerInterface
      */
     public function getFieldMap($model_id, $field)
     {
-      return isset($this->configs[$model_id]['field_mapping'][$field]) ? $this->configs[$model_id]['field_mapping'][$field] : null;
+        return isset($this->configs[$model_id]['field_mapping'][$field]) ? $this->configs[$model_id]['field_mapping'][$field] : null;
     }
 
     /**
@@ -106,6 +106,14 @@ class ConfigManager implements ConfigManagerInterface
     public function getModelManager($model_id)
     {
         return isset($this->configs[$model_id]['model_manager']) ? $this->configs[$model_id]['model_manager'] : null;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getModelClass($model_id)
+    {
+        return isset($this->configs[$model_id]['model_class']) ? $this->configs[$model_id]['model_class'] : null;
     }
 
 
@@ -157,6 +165,19 @@ class ConfigManager implements ConfigManagerInterface
     /**
      * {@inheritdoc}
      */
+    public function getConfigNames()
+    {
+        $indexFields =  null;
+
+        foreach ($this->getConfigs() as $index => $config) {
+            $indexFields[$index] = $config['label'];
+        }
+        return $indexFields;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getIndexFieldSettings($model_id, $field)
     {
 
@@ -167,9 +188,14 @@ class ConfigManager implements ConfigManagerInterface
         }
     }
 
-    public function getResultTemplate($model_id, $type = 'solr')
+    public function getResultTemplate($model_id, $type = 'lucene')
     {
-        return isset($this->configs[$model_id]['template'][$type]) ? $this->configs[$model_id]['template'][$type] : null;
+        return isset($this->configs[$model_id]['template']['result'][$type]) ? $this->configs[$model_id]['template']['result'][$type] : null;
+    }
+
+    public function getSearchBlockTemplate($model_id)
+    {
+        return isset($this->configs[$model_id]['template']['search']) ? $this->configs[$model_id]['template']['search'] : null;
     }
 
     /**

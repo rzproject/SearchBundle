@@ -151,6 +151,7 @@ class RzSearchExtension extends Extension
 
         //Zend Lucene
         $config_zend_lucene = $config['engine']['zend_lucene'];
+
         $container->setParameter('rz_search.engine.zend_lucene.enabled', $config_zend_lucene['enabled']);
 
         if (($config_zend_lucene['enabled'])) {
@@ -179,7 +180,6 @@ class RzSearchExtension extends Extension
         if (empty($config)) {
             return;
         }
-
         $container
             ->getDefinition('rz_search.zend_lucene')
             ->addMethodCall('setIndexes', array($config, $settings));

@@ -136,8 +136,9 @@ class LuceneManager
 
             #remap index name
             if (array_key_exists($index['mapping_config'],  $settings)) {
-                $configs = $settings[$index['mapping_config']];
-                $identifier = preg_replace('/\\\\/', '.', strtolower($configs['model_class']));
+                //$configs = $settings[$index['mapping_config']];
+                //$identifier = preg_replace('/\\\\/', '.', strtolower($configs['model_class']));
+                $identifier = $index['mapping_config'];
             } else {
                 throw new \InvalidArgumentException('Each lucene index must have a configs counter part value.');
             }
