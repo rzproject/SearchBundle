@@ -22,7 +22,6 @@ use ZendSearch\Lucene\Search\Query\Term as QueryTerm;
 
 class SearchIndexListener
 {
-    protected $entityId;
     protected $configManager;
     protected $searchClient;
     protected $container;
@@ -30,27 +29,32 @@ class SearchIndexListener
     /**
      * Constructor
      *
-     * @param $id
      * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
      * @param \Rz\SearchBundle\Model\ConfigManagerInterface $configManager
      */
-    public function __construct($id, ContainerInterface $container, ConfigManagerInterface $configManager)
+    public function __construct(ContainerInterface $container, ConfigManagerInterface $configManager)
     {
-        $this->entityId = $id;
         $this->configManager = $configManager;
         $this->container = $container;
+
+        if ($this->container->getParameter('rz_search.engine.solr.enabled')) {
+            $this->searchClient = $this->container->get('solarium.client.default');
+        } elseif ($this->container->getParameter('rz_search.engine.zend_lucene.enabled')) {
+            $this->searchClient = $this->container->get('rz_search.zend_lucene');
+        }
     }
 
     public function postPersist(LifecycleEventArgs $args)
     {
         //TODO : find a more efficient way to detect config
         $entity = $args->getEntity();
-        if ($this->configManager->hasConfig($this->entityId) && get_class($entity) == $this->configManager->getModelClass($this->entityId)) {
+        $entity_id = preg_replace('/\\\\/', '.', strtolower(get_class($entity)));
+        if ($this->configManager->hasConfig($entity_id)) {
             try {
                 if ($this->container->getParameter('rz_search.engine.solr.enabled')) {
-                    $this->indexDataSolr('insert', $entity, $this->entityId);
+                    $this->indexDataSolr('insert', $entity, $entity_id);
                 } elseif ($this->container->getParameter('rz_search.engine.zend_lucene.enabled')) {
-                    $this->indexDataZendLucene('insert', $entity, $this->entityId);
+                    $this->indexDataZendLucene('insert', $entity, $entity_id);
                 }
             } catch (\Exception $e) {
                 throw $e;
@@ -62,12 +66,13 @@ class SearchIndexListener
     {
         //TODO : find a more efficient way to detect config
         $entity = $args->getEntity();
-        if ($this->configManager->hasConfig($this->entityId) && get_class($entity) == $this->configManager->getModelClass($this->entityId)) {
+        $entity_id = preg_replace('/\\\\/', '.', strtolower(get_class($entity)));
+        if ($this->configManager->hasConfig($entity_id)) {
             try {
                 if ($this->container->getParameter('rz_search.engine.solr.enabled')) {
-                    $this->indexDataSolr('update', $entity, $this->entityId);
+                    $this->indexDataSolr('update', $entity, $entity_id);
                 } elseif ($this->container->getParameter('rz_search.engine.zend_lucene.enabled')) {
-                    $this->indexDataZendLucene('update', $entity, $this->entityId);
+                    $this->indexDataZendLucene('update', $entity, $entity_id);
                 }
             } catch (\Exception $e) {
                 throw $e;
@@ -78,6 +83,7 @@ class SearchIndexListener
     protected function indexDataZendLucene($type, $entity, $entity_id)
     {
         $index = $this->container->get('rz_search.zend_lucene')->getIndex($entity_id);
+
         $id = $this->configManager->getModelIdentifier($entity_id).'_'.$entity->getId();
 
 
@@ -132,7 +138,6 @@ class SearchIndexListener
 
     protected function indexDataSolr($type, $entity, $entity_id)
     {
-        $this->searchClient = $this->container->get(sprintf('solarium.client.%s', $entity_id));
         $update = $this->searchClient->createUpdate();
         // create a new document for the data
         $doc = $update->createDocument();

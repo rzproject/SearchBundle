@@ -108,14 +108,6 @@ class ConfigManager implements ConfigManagerInterface
         return isset($this->configs[$model_id]['model_manager']) ? $this->configs[$model_id]['model_manager'] : null;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getModelClass($model_id)
-    {
-        return isset($this->configs[$model_id]['model_class']) ? $this->configs[$model_id]['model_class'] : null;
-    }
-
 
 
     /**
@@ -159,19 +151,6 @@ class ConfigManager implements ConfigManagerInterface
             $indexFields[] = $index;
         }
 
-        return $indexFields;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getConfigNames()
-    {
-        $indexFields =  null;
-
-        foreach ($this->getConfigs() as $index => $config) {
-            $indexFields[$index] = $config['label'];
-        }
         return $indexFields;
     }
 

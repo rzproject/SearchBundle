@@ -11,7 +11,6 @@
         <service id="rz.search.listener.post_update" class="%rz.search.listener.post_update.class%">
             <tag name="doctrine.event_listener" event="postUpdate" />
             <tag name="doctrine.event_listener" event="postPersist" />
-            <argument>sonata.news.post</argument>
             <argument type="service" id="service_container" />
             <argument type="service" id="rz_search.config_manager" />
         </service>

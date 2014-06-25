@@ -67,6 +67,8 @@ class SearchHighlightExtension extends \Twig_Extension
     }
 
     public function renderLucene($id, $result, $highlight = null) {
+        //hard coded
+
         $template = $this->configManager->getResultTemplate($id, 'lucene');
         $route = $this->configManager->getFieldRoute($id);
         return $this->environment->render($template, array('result'=>$result, 'route'=>$route));
