@@ -16,12 +16,13 @@
     "require": {
     	"symfony/framework-bundle": "~2.4",
         "solarium/solarium": "~3.0",
-        "white-october/pagerfanta-bundle": "~1.0"
+        "white-october/pagerfanta-bundle": "~1.0",
+        "symfony/filesystem": "~2.1",
+        "zendframework/zendsearch": "dev-master"
     },
     "autoload": {
-        "psr-0": { "Rz\\SearchBundle": "" }
+        "psr-4": { "Rz\\SearchBundle\\": "" }
     },
-    "target-dir": "Rz/SearchBundle",
     "extra": {
         "branch-alias": {
             "dev-1.0": "1.0-dev"
