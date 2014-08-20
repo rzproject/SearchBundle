@@ -24,4 +24,28 @@ class ConfigManagerException extends \Exception
     {
         return new static(sprintf('The RzSearchBundle config "%s" does not exist.', $name));
     }
+
+    /**
+     * Gets the "CONFIG DOES NOT EXIST" exception.
+     *
+     * @param string $name The invalid CKEditor config name.
+     *
+     * @return \Rz\Exception\ConfigManagerException The "CONFIG DOES NOT EXIST" exception.
+     */
+    public static function indexDoesNotExist($name)
+    {
+        return new static(sprintf('The RzSearchBundle index "%s" does not exist.', $name));
+    }
+
+    /**
+     * Gets the "CONFIG DOES NOT EXIST" exception.
+     *
+     * @param string $name The invalid CKEditor config name.
+     *
+     * @return \Rz\Exception\ConfigManagerException The "CONFIG DOES NOT EXIST" exception.
+     */
+    public static function optionDoesNotExist($name)
+    {
+        return new static(sprintf('The RzSearchBundle options "%s" does not exist.', $name));
+    }
 }

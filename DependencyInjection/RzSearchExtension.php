@@ -197,6 +197,7 @@ class RzSearchExtension extends Extension
                 if ($configuration['model_class']) {
                     //$name = preg_replace('/\\\\/', '.', strtolower($configuration['model_class']));
                     $definition->addMethodCall('setConfig', array($name, $configuration));
+                    $definition->addMethodCall('setIndex', array($name, $configuration['model_identifier']));
                 }
             }
         }

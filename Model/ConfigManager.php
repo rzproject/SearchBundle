@@ -19,6 +19,7 @@ class ConfigManager implements ConfigManagerInterface
     /** @var array */
     protected $configs;
     protected $options;
+    protected $indices;
 
     /**
      * Creates a CKEditor config manager.
@@ -28,6 +29,8 @@ class ConfigManager implements ConfigManagerInterface
     public function __construct(array $configs = array())
     {
         $this->setConfigs($configs);
+        $this->options = array();
+        $this->indices= array();
     }
 
     /**
@@ -62,6 +65,27 @@ class ConfigManager implements ConfigManagerInterface
     public function hasConfig($name)
     {
         return isset($this->configs[$name]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function hasConfigInConfigs($name, $config)
+    {
+        return isset($config[$name]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getConfigInConfigs($name, $config)
+    {
+        if($this->hasConfigInConfigs($name, $config)) {
+            return $config[$name];
+        } else {
+            return;
+        }
+
     }
 
     /**
@@ -116,15 +140,22 @@ class ConfigManager implements ConfigManagerInterface
         return isset($this->configs[$model_id]['model_class']) ? $this->configs[$model_id]['model_class'] : null;
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function getModelIndexFilter($model_id)
+    {
+        return isset($this->configs[$model_id]['model_index_filter']) ? $this->configs[$model_id]['model_index_filter'] : null;
+    }
+
 
 
     /**
      * {@inheritdoc}
      */
-    public function getFieldValue($model_id, $entity, $field)
+    public function getFieldValue($model_id, $entity, $field, $config = null)
     {
         $getter = 'get'.ucfirst($this->getFieldMap($model_id, $field));
-
         if (!method_exists($entity, $getter)) {
             throw new \RuntimeException(sprintf("Class '%s' should have a method '%s'.", get_class($entity), $getter));
         }
@@ -137,8 +168,21 @@ class ConfigManager implements ConfigManagerInterface
                 $temp[] =  $child->__toString();
             }
             return $temp;
-        } elseif(is_object($value) && !($value instanceof \DateTime)) {
-            return $value->__toString();
+        } elseif ($value instanceof \DateTime) {
+            return $value->format('Y-m-d H:i:s');
+        } elseif(is_object($value)) {
+            $fields = isset($config['fields']) ? $config['fields'] : null;
+            $separator = isset($config['separator']) ? $config['separator'] : ' ';
+            if($fields) {
+                $temp = null;
+                foreach ($fields as $child) {
+                    $getterChild = $this->getter($child);
+                    $temp[] =  $value->$getterChild();
+                }
+                return $temp ? implode($separator, $temp) : null;
+            } else {
+                return $value->__toString();
+            }
         } else {
             return $value;
         }
@@ -214,5 +258,114 @@ class ConfigManager implements ConfigManagerInterface
     public function getModelId($id) {
 
         return isset($this->configs[$id]['model_class']) ? preg_replace('/\\\\/', '.', strtolower($this->configs[$id]['model_class'])) : null;
+    }
+
+    /**
+     * @param mixed $options
+     */
+    public function setOptions($options)
+    {
+        foreach ($options as $name => $option) {
+            $this->setOption($name, $option);
+        }
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getOptions()
+    {
+        return $this->options;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function hasOptions()
+    {
+        return !empty($this->options);
+    }
+
+
+    /**
+     * {@inheritdoc}
+     */
+    public function hasOption($name)
+    {
+        return isset($this->options[$name]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getOption($name)
+    {
+        if (!$this->hasOption($name)) {
+            throw ConfigManagerException::optionDoesNotExist($name);
+        }
+
+        return $this->options[$name];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setOption($name, $option)
+    {
+        $this->options[$name] = $option;
+    }
+
+    /**
+     * @param mixed $indices
+     */
+    public function setIndices(array $indices)
+    {
+        foreach ($indices as $name => $index) {
+            $this->setIndex($name, $index);
+        }
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getIndices()
+    {
+        return $this->indices;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function hasIndices()
+    {
+        return !empty($this->indices);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function hasIndex($name)
+    {
+        return isset($this->indices[$name]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getIndex($name)
+    {
+        if (!$this->hasIndex($name)) {
+            throw ConfigManagerException::indexDoesNotExist($name);
+        }
+
+        return $this->indices[$name];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setIndex($name, $index)
+    {
+        $this->indices[$name] = $index;
     }
 }
