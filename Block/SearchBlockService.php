@@ -88,7 +88,7 @@ class SearchBlockService extends BaseBlockService
     {
         $query = $this->container->get('request')->query->get('rz_q');
 
-        return $this->renderResponse($blockContext->getTemplate(), array(
+        return $this->renderPrivateResponse($blockContext->getTemplate(), array(
                      'rz_q' => $query,
                      'block'     => $blockContext->getBlock(),
                      'settings'  => $blockContext->getSettings()
