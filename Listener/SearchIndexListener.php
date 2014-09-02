@@ -45,15 +45,38 @@ class SearchIndexListener
     {
         //TODO : find a more efficient way to detect config
         $entity = $args->getEntity();
-        if ($this->configManager->hasConfig($this->entityId) && get_class($entity) == $this->configManager->getModelClass($this->entityId)) {
-            try {
-                if ($this->container->getParameter('rz_search.engine.solr.enabled')) {
-                    $this->indexDataSolr('insert', $entity, $this->entityId);
-                } elseif ($this->container->getParameter('rz_search.engine.zend_lucene.enabled')) {
-                    $this->indexDataZendLucene('insert', $entity, $this->entityId);
+        if($this->configManager->hasIndices()) {
+            # traverse through all indices
+            foreach($this->configManager->getIndices() as $key=>$index) {
+                if ($this->configManager->hasConfig($index) && get_class($entity) == $this->configManager->getModelClass($index)) {
+                    $val = false;
+                    // implement filter for indexing
+                    if ($filters = $this->configManager->getModelIndexFilter($index)) {
+                        foreach($filters as $fieldName=>$filter) {
+                            $getter = 'get'.ucfirst($fieldName);
+                            switch ($filter['operand']) {
+                                case '=':
+                                    $val = ($entity->$getter() == $filter['value']) ? true : false;
+                                    break;
+                                case '!=':
+                                    $val = ($entity->$getter() != $filter['value']) ? true : false;
+                                    break;
+                            }
+                        }
+                    }
+
+                    if($val) {
+                        try {
+                            if ($this->container->getParameter('rz_search.engine.solr.enabled')) {
+                                $this->indexDataSolr('insert', $entity, $index);
+                            } elseif ($this->container->getParameter('rz_search.engine.zend_lucene.enabled')) {
+                                $this->indexDataZendLucene('insert', $entity, $index);
+                            }
+                        } catch (\Exception $e) {
+                            throw $e;
+                        }
+                    }
                 }
-            } catch (\Exception $e) {
-                throw $e;
             }
         }
     }
@@ -130,25 +153,31 @@ class SearchIndexListener
 
         $indexFields = $this->configManager->getIndexFields($entity_id);
 
+        $searchContent = null;
         foreach ($indexFields as $field) {
             $value = null;
             $settings = $this->configManager->getIndexFieldSettings($entity_id, $field);
 
-            //$config = isset($settings['fields']) ? $settings['fields'] : null;
-            $value = $this->configManager->getFieldValue($entity_id, $entity, $field, $settings);
+            $config = isset($settings['fields']) ? $settings['fields'] : null;
+            $value = $this->configManager->getFieldValue($entity_id, $entity, $field, $config);
 
             try {
                 if (is_array($value)) {
                     foreach($value as $val) {
                         $doc->addField(Field::$settings['type']($field, $val));
+                        $searchContent .= $val;
                     }
                 } else {
                     $doc->addField(Field::$settings['type']($field, $value));
+                    $searchContent .= $value;
                 }
             } catch (\Exception $e) {
                 throw $e;
             }
         }
+
+        //default search field
+        $doc->addField(Field::unStored('searchContent', $searchContent));
 
         // Add your document to the index
         $index->addDocument($doc);
