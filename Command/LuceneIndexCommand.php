@@ -9,6 +9,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Rz\SearchBundle\Model\ConfigManagerInterface;
 
+use ZendSearch\Lucene\Index\Term;
+use ZendSearch\Lucene\Document;
+use ZendSearch\Lucene\Document\Field;
+
 class LuceneIndexCommand extends ContainerAwareCommand
 {
 
@@ -42,13 +46,8 @@ class LuceneIndexCommand extends ContainerAwareCommand
                         // Initialize Variables
                         $index = $this->getContainer()->get('rz_search.zend_lucene')->getIndex($identifier);
                         $progress = $this->getHelperSet()->get('progress');
-                        $doc = array();
-                        $len = count($askTheExperts);
+                        $doc = null;
                         $i = 0;
-                        $result = array();
-                        //TODO add pager for bulk index
-                        //for now pager is hard coded
-                        $batch_count = 0;
 
                         $progress->start($output, $i);
 
@@ -69,29 +68,23 @@ class LuceneIndexCommand extends ContainerAwareCommand
 
                                 if($val) {
                                     try {
-                                        $doc[$batch_count] = $this->indexDataZendLucene('update', $entity, $identifier, $index, $configManager);
+                                        $doc = $this->indexDataZendLucene('update', $entity, $identifier, $index, $configManager);
                                     } catch (\Exception $e) {
                                         throw $e;
                                     }
                                 }
                             } else {
                                 try {
-                                    $doc[$batch_count] = $this->indexDataZendLucene('update', $entity, $identifier, $index, $configManager);
+                                    $doc = $this->indexDataZendLucene('update', $entity, $identifier, $index, $configManager);
                                 } catch (\Exception $e) {
                                     throw $e;
                                 }
                             }
 
-                            if ($batch_count >= 10 || ($i == $len - 1)) {
+                            if ($doc) {
                                 // add the documents and a commit command to the update query
-                                $index->addDocuments($doc);
-                                $index->addCommit();
-                                $index->optimize();
-                                if($batch_count >= 10) {
-                                    $batch_count = 0;
-                                }
+                                $index->addDocument($doc);
                             }
-                            $batch_count++;
                             $i++;
                             $progress->advance();
                             sleep(.25);
@@ -139,22 +132,22 @@ class LuceneIndexCommand extends ContainerAwareCommand
         $doc->addField(Field::keyword('model_id', $entity->getId()));
         $doc->addField(Field::keyword('index_type', $entity_id));
 
-        if($route = $this->configManager->getFieldRouteGenerator($entity_id)) {
+        if($route = $configManager->getFieldRouteGenerator($entity_id)) {
             $routeGenerator = $this->getContainer()->get($route);
             if($routeGenerator) {
                 $doc->addField(Field::unIndexed('url', $routeGenerator->generate($entity)));
             }
         }
 
-        $indexFields = $this->configManager->getIndexFields($entity_id);
+        $indexFields = $configManager->getIndexFields($entity_id);
 
         $searchContent = null;
         foreach ($indexFields as $field) {
             $value = null;
-            $settings = $this->configManager->getIndexFieldSettings($entity_id, $field);
+            $settings = $configManager->getIndexFieldSettings($entity_id, $field);
 
             $config = isset($settings['fields']) ? $settings['fields'] : null;
-            $value = $this->configManager->getFieldValue($entity_id, $entity, $field, $config);
+            $value = $configManager->getFieldValue($entity_id, $entity, $field, $config);
 
             try {
                 if (is_array($value)) {
