@@ -12,6 +12,7 @@ use Rz\SearchBundle\Model\ConfigManagerInterface;
 use ZendSearch\Lucene\Index\Term;
 use ZendSearch\Lucene\Document;
 use ZendSearch\Lucene\Document\Field;
+use ZendSearch\Lucene\Search\Query\Term as QueryTerm;
 
 class LuceneIndexCommand extends ContainerAwareCommand
 {
@@ -36,15 +37,18 @@ class LuceneIndexCommand extends ContainerAwareCommand
             $configManager = $this->getContainer()->get('rz_search.config_manager');
             $modelManager = null;
             if ($configManager->hasConfig($identifier)) {
+
                 $modelManagerId = $configManager->getModelManager($identifier);
                 if($modelManagerId) {
                     $modelManager = $this->getContainer()->get($modelManagerId);
                     $filters = $configManager->getModelIndexFilter($identifier);
 
                     if($modelManager) {
-                        $askTheExperts = $modelManager->findAll();
-                        // Initialize Variables
+
                         $index = $this->getContainer()->get('rz_search.zend_lucene')->getIndex($identifier);
+
+                        $askTheExperts = $modelManager->findAll();
+
                         $progress = $this->getHelperSet()->get('progress');
                         $doc = null;
                         $i = 0;
@@ -52,6 +56,7 @@ class LuceneIndexCommand extends ContainerAwareCommand
                         $progress->start($output, $i);
 
                         foreach($askTheExperts as $entity) {
+
                             $val = null;
                             if ($filters) {
                                 foreach($filters as $fieldName=>$filter) {
@@ -72,6 +77,8 @@ class LuceneIndexCommand extends ContainerAwareCommand
                                     } catch (\Exception $e) {
                                         throw $e;
                                     }
+                                } else {
+                                    continue;
                                 }
                             } else {
                                 try {
@@ -85,7 +92,7 @@ class LuceneIndexCommand extends ContainerAwareCommand
                                 // add the documents and a commit command to the update query
                                 $index->addDocument($doc);
                             }
-                            $i++;
+
                             $progress->advance();
                             sleep(.25);
                         }
@@ -115,6 +122,9 @@ class LuceneIndexCommand extends ContainerAwareCommand
     {
         $id = $configManager->getModelIdentifier($entity_id).'_'.$entity->getId();
 
+//        $key = str_pad($entity->getId(), 10, "0", STR_PAD_LEFT);
+
+
         if ($type == 'update') {
             $term = new Term($id, 'uuid');
             $docIds = $index->termDocs($term);
@@ -124,11 +134,12 @@ class LuceneIndexCommand extends ContainerAwareCommand
                 }
             }
         }
-
+        $doc = null;
         // Create a new document
         $doc = new Document();
 
         $doc->addField(Field::keyword('uuid', $id));
+//        $doc->addField(Field::keyword('content_key', $key));
         $doc->addField(Field::keyword('model_id', $entity->getId()));
         $doc->addField(Field::keyword('index_type', $entity_id));
 
