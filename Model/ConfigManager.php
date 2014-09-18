@@ -149,6 +149,14 @@ class ConfigManager implements ConfigManagerInterface
     }
 
 
+    /**
+     * {@inheritdoc}
+     */
+    public function getModelUnIndexFilter($model_id)
+    {
+        return isset($this->configs[$model_id]['model_unindex_filter']) ? $this->configs[$model_id]['model_unindex_filter'] : null;
+    }
+
 
     /**
      * {@inheritdoc}

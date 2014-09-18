@@ -49,28 +49,12 @@ class SearchIndexListener
             # traverse through all indices
             foreach($this->configManager->getIndices() as $key=>$index) {
                 if ($this->configManager->hasConfig($index) && get_class($entity) == $this->configManager->getModelClass($index)) {
-                    $val = false;
-                    // implement filter for indexing
-                    if ($filters = $this->configManager->getModelIndexFilter($index)) {
-                        foreach($filters as $fieldName=>$filter) {
-                            $getter = 'get'.ucfirst($fieldName);
-                            switch ($filter['operand']) {
-                                case '=':
-                                    $val = ($entity->$getter() == $filter['value']) ? true : false;
-                                    break;
-                                case '!=':
-                                    $val = ($entity->$getter() != $filter['value']) ? true : false;
-                                    break;
-                            }
-                        }
-                    }
-
-                    if($val) {
+                    if ($this->isFilterable($entity,  $this->configManager->getModelIndexFilter($index))) {
                         try {
                             if ($this->container->getParameter('rz_search.engine.solr.enabled')) {
-                                $this->indexDataSolr('insert', $entity, $index);
+                                $this->indexDataSolr('update', $entity, $index);
                             } elseif ($this->container->getParameter('rz_search.engine.zend_lucene.enabled')) {
-                                $this->indexDataZendLucene('insert', $entity, $index);
+                                $this->indexDataZendLucene('update', $entity, $index);
                             }
                         } catch (\Exception $e) {
                             throw $e;
@@ -89,28 +73,23 @@ class SearchIndexListener
             # traverse through all indices
             foreach($this->configManager->getIndices() as $key=>$index) {
                 if ($this->configManager->hasConfig($index) && get_class($entity) == $this->configManager->getModelClass($index)) {
-                    $val = false;
-                      // implement filter for indexing
-                    if ($filters = $this->configManager->getModelIndexFilter($index)) {
-                        foreach($filters as $fieldName=>$filter) {
-                            $getter = 'get'.ucfirst($fieldName);
-                            switch ($filter['operand']) {
-                                case '=':
-                                    $val = ($entity->$getter() == $filter['value']) ? true : false;
-                                    break;
-                                case '!=':
-                                    $val = ($entity->$getter() != $filter['value']) ? true : false;
-                                    break;
-                            }
-                        }
-                    }
 
-                    if($val) {
+                    if ($this->isFilterable($entity,  $this->configManager->getModelIndexFilter($index))) {
                         try {
                             if ($this->container->getParameter('rz_search.engine.solr.enabled')) {
                                 $this->indexDataSolr('update', $entity, $index);
                             } elseif ($this->container->getParameter('rz_search.engine.zend_lucene.enabled')) {
                                 $this->indexDataZendLucene('update', $entity, $index);
+                            }
+                        } catch (\Exception $e) {
+                            throw $e;
+                        }
+                    } elseif ($this->isFilterable($entity,  $this->configManager->getModelUnIndexFilter($index))) {
+                        try {
+                            if ($this->container->getParameter('rz_search.engine.solr.enabled')) {
+                                $this->indexDataSolr('update', $entity, $index);
+                            } elseif ($this->container->getParameter('rz_search.engine.zend_lucene.enabled')) {
+                                $this->indexDataZendLucene('update', $entity, $index, false);
                             }
                         } catch (\Exception $e) {
                             throw $e;
@@ -121,7 +100,37 @@ class SearchIndexListener
         }
     }
 
-    protected function indexDataZendLucene($type, $entity, $entity_id)
+    protected function isFilterable($entity, $indexFilters) {
+
+        $indexFilterStatus = null;
+        if ($indexFilters) {
+            foreach($indexFilters as $fieldName=>$filter) {
+                $getter = 'get'.ucfirst($fieldName);
+                switch ($filter['operand']) {
+                    case '=':
+                        if(is_null($indexFilterStatus)) {
+                            $indexFilterStatus = ($entity->$getter() == $filter['value']) ? true : false;
+                        } else {
+                            $indexFilterStatus = $indexFilterStatus && ($entity->$getter() == $filter['value']) ? true : false;
+                        }
+                        break;
+                    case '!=':
+                        if(is_null($indexFilterStatus)) {
+                            $indexFilterStatus =  ($entity->$getter() != $filter['value']) ? true : false;
+                        } else {
+                            $indexFilterStatus = $indexFilterStatus &&  ($entity->$getter() != $filter['value']) ? true : false;
+                        }
+                        break;
+                }
+            }
+
+            return is_null($indexFilterStatus) ? true : $indexFilterStatus;
+        } else {
+            return true;
+        }
+    }
+
+    protected function indexDataZendLucene($type, $entity, $entity_id, $isIndex = true)
     {
         $index = $this->container->get('rz_search.zend_lucene')->getIndex($entity_id);
         $id = $this->configManager->getModelIdentifier($entity_id).'_'.$entity->getId();
@@ -137,54 +146,56 @@ class SearchIndexListener
             }
         }
 
-        // Create a new document
-        $doc = new Document();
+        if($isIndex) {
+            // Create a new document
+            $doc = new Document();
 
-        $doc->addField(Field::keyword('uuid', $id));
-        $doc->addField(Field::keyword('model_id', $entity->getId()));
-        $doc->addField(Field::keyword('index_type', $entity_id));
+            $doc->addField(Field::keyword('uuid', $id));
+            $doc->addField(Field::keyword('model_id', $entity->getId()));
+            $doc->addField(Field::keyword('index_type', $entity_id));
 
-        if($route = $this->configManager->getFieldRouteGenerator($entity_id)) {
-            $routeGenerator = $this->container->get($route);
-            if($routeGenerator) {
-                $doc->addField(Field::unIndexed('url', $routeGenerator->generate($entity)));
-            }
-        }
-
-        $indexFields = $this->configManager->getIndexFields($entity_id);
-
-        $searchContent = null;
-        foreach ($indexFields as $field) {
-            $value = null;
-            $settings = $this->configManager->getIndexFieldSettings($entity_id, $field);
-
-            $config = isset($settings['fields']) ? $settings['fields'] : null;
-            $value = $this->configManager->getFieldValue($entity_id, $entity, $field, $config);
-
-            try {
-                if (is_array($value)) {
-                    foreach($value as $val) {
-                        $doc->addField(Field::$settings['type']($field, $val));
-                        $searchContent .= $val;
-                    }
-                } else {
-                    $doc->addField(Field::$settings['type']($field, $value));
-                    $searchContent .= $value;
+            if($route = $this->configManager->getFieldRouteGenerator($entity_id)) {
+                $routeGenerator = $this->container->get($route);
+                if($routeGenerator) {
+                    $doc->addField(Field::unIndexed('url', $routeGenerator->generate($entity)));
                 }
-            } catch (\Exception $e) {
-                throw $e;
             }
+
+            $indexFields = $this->configManager->getIndexFields($entity_id);
+
+            $searchContent = null;
+            foreach ($indexFields as $field) {
+                $value = null;
+                $settings = $this->configManager->getIndexFieldSettings($entity_id, $field);
+
+                $config = isset($settings['fields']) ? $settings['fields'] : null;
+                $value = $this->configManager->getFieldValue($entity_id, $entity, $field, $config);
+
+                try {
+                    if (is_array($value)) {
+                        foreach($value as $val) {
+                            $doc->addField(Field::$settings['type']($field, $val));
+                            $searchContent .= $val;
+                        }
+                    } else {
+                        $doc->addField(Field::$settings['type']($field, $value));
+                        $searchContent .= $value;
+                    }
+                } catch (\Exception $e) {
+                    throw $e;
+                }
+            }
+
+            //default search field
+            $doc->addField(Field::unStored('searchContent', $searchContent));
+
+            // Add your document to the index
+            $index->addDocument($doc);
+            // Commit your change
+            $index->commit();
+            // If you want you can optimize your index
+            $index->optimize();
         }
-
-        //default search field
-        $doc->addField(Field::unStored('searchContent', $searchContent));
-
-        // Add your document to the index
-        $index->addDocument($doc);
-        // Commit your change
-        $index->commit();
-        // If you want you can optimize your index
-        $index->optimize();
     }
 
     protected function indexDataSolr($type, $entity, $entity_id)
