@@ -52,9 +52,9 @@ class SearchIndexListener
                     if ($this->isFilterable($entity,  $this->configManager->getModelIndexFilter($index))) {
                         try {
                             if ($this->container->getParameter('rz_search.engine.solr.enabled')) {
-                                $this->indexDataSolr('update', $entity, $index);
+                                $this->indexDataSolr('insert', $entity, $index);
                             } elseif ($this->container->getParameter('rz_search.engine.zend_lucene.enabled')) {
-                                $this->indexDataZendLucene('update', $entity, $index);
+                                $this->indexDataZendLucene('insert', $entity, $index);
                             }
                         } catch (\Exception $e) {
                             throw $e;
