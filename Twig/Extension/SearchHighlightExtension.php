@@ -95,7 +95,6 @@ class SearchHighlightExtension extends \Twig_Extension
      */
     public function renderHighlightItem($hightlight)
     {
-        var_dump($hightlight);
         $text = array();
         if($hightlight){
             foreach($hightlight as $field => $highlight) {

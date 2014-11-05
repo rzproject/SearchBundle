@@ -65,8 +65,7 @@ class SolrIndexCommand extends ContainerAwareCommand
                         }
                         $batch_count++;
                     } catch (\Exception $e) {
-                        var_dump($e);
-                        die();
+                        throw $e;
                     }
                 }
                 $i++;
