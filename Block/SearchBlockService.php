@@ -13,7 +13,7 @@ namespace Rz\SearchBundle\Block;
 
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Admin\Admin;
-use Sonata\AdminBundle\Validator\ErrorElement;
+use Sonata\CoreBundle\Validator\ErrorElement;
 
 use Sonata\BlockBundle\Block\BlockContextInterface;
 use Sonata\BlockBundle\Model\BlockInterface;
