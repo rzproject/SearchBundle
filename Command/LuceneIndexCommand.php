@@ -47,7 +47,7 @@ class LuceneIndexCommand extends ContainerAwareCommand
 
                         $index = $this->getContainer()->get('rz_search.zend_lucene')->getIndex($identifier);
 
-                        $askTheExperts = $modelManager->findAll();
+                        $entities = $modelManager->findAll();
 
                         $progress = $this->getHelperSet()->get('progress');
                         $doc = null;
@@ -55,7 +55,7 @@ class LuceneIndexCommand extends ContainerAwareCommand
 
                         $progress->start($output, $i);
 
-                        foreach($askTheExperts as $entity) {
+                        foreach($entities as $entity) {
 
                             $val = null;
                             if ($filters) {
@@ -156,8 +156,8 @@ class LuceneIndexCommand extends ContainerAwareCommand
         foreach ($indexFields as $field) {
             $value = null;
             $settings = $configManager->getIndexFieldSettings($entity_id, $field);
-
-            $config = isset($settings['fields']) ? $settings['fields'] : null;
+            $config['fields'] = isset($settings['fields']) ? $settings['fields'] : null;
+            $config['separator'] = isset($config['separator']) ? $config['separator'] : ' ';
             $value = $configManager->getFieldValue($entity_id, $entity, $field, $config);
 
             try {
