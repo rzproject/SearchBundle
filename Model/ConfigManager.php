@@ -181,6 +181,7 @@ class ConfigManager implements ConfigManagerInterface
         } elseif(is_object($value)) {
             $fields = isset($config['fields']) ? $config['fields'] : null;
             $separator = isset($config['separator']) ? $config['separator'] : ' ';
+
             if($fields) {
                 $temp = null;
                 foreach ($fields as $child) {
@@ -190,6 +191,25 @@ class ConfigManager implements ConfigManagerInterface
                 return $temp ? implode($separator, $temp) : null;
             } else {
                 return $value->__toString();
+            }
+        } elseif(is_array($value)) {
+            $fields = isset($config['fields']) ? $config['fields'] : null;
+            $separator = isset($config['separator']) ? $config['separator'] : ' ';
+            if($fields) {
+                $temp = null;
+                foreach ($fields as $child) {
+                    if(array_key_exists($child,$value)) {
+
+                        if(is_array($value[$child])) {
+                            $temp[] =  implode($separator, $value[$child]);
+                        } else {
+                            $temp[] =  $value[$child];
+                        }
+                    }
+                }
+                return $temp ? implode($separator, $temp) : null;
+            } else {
+                return;
             }
         } else {
             return $value;
