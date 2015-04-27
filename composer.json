@@ -18,7 +18,7 @@
         "solarium/solarium": "~3.0",
         "white-october/pagerfanta-bundle": "~1.0",
         "symfony/filesystem": "~2.1",
-        "zendframework/zendsearch": "dev-master"
+        "rmzamora/zendsearch": "dev-master"
     },
     "autoload": {
         "psr-4": { "Rz\\SearchBundle\\": "" }
