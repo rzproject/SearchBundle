@@ -10,7 +10,7 @@ Uses a forked version of NelmioSolariumBundle.
 
 ## Note
 
-Still in heavy development and supports only Solr client via Solarium.
+**DEPRECATED**
 
 ## License
 
