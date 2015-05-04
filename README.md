@@ -15,3 +15,5 @@ Uses a forked version of NelmioSolariumBundle.
 ## License
 
 Released under the MIT License, see LICENSE.
+
+Back to: [rzproject](http://rzproject.github.io)
