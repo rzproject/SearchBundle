@@ -162,13 +162,12 @@ class SearchIndexListener
             }
 
             $indexFields = $this->configManager->getIndexFields($entity_id);
-
             $searchContent = null;
             foreach ($indexFields as $field) {
                 $value = null;
                 $settings = $this->configManager->getIndexFieldSettings($entity_id, $field);
-
-                $config = isset($settings['fields']) ? $settings['fields'] : null;
+                $config['fields'] = isset($settings['fields']) ? $settings['fields'] : null;
+                $config['separator'] = isset($config['separator']) ? $config['separator'] : ' ';
                 $value = $this->configManager->getFieldValue($entity_id, $entity, $field, $config);
 
                 try {
@@ -185,7 +184,6 @@ class SearchIndexListener
                     throw $e;
                 }
             }
-
             //default search field
             $doc->addField(Field::unStored('searchContent', $searchContent));
 
