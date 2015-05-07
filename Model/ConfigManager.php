@@ -171,27 +171,59 @@ class ConfigManager implements ConfigManagerInterface
         $value = $entity->$getter();
 
         if ($value instanceof PersistentCollection) {
+            $fields = isset($config['fields']) ? $config['fields'] : null;
+            $separator = isset($config['separator']) ? $config['separator'] : ' ';
+			
+			/*
+			 Handle this Lucene index mapping configuration:
+			 
+			 field_map_settings:
+				 postHasCategory:
+					 fields :
+					   - category:   <-- Relation Field
+						  - slug	 <-- Relation Return Field
+					 separator: ~
+					 filter : ~
+					 type : unStored
+						 
+			*/
+
             $temp = null;
-            foreach ($value as $child) {
-                $temp[] =  $child->__toString();
-            }
-            return $temp;
+            if(count($fields)>0){
+				foreach ($value as $child) {				
+					foreach($fields as $field){						
+						foreach($field as $keyField=>$keyValues){
+							$sub = $this->getter($keyField);
+							if(is_array($keyValues)){
+								foreach($keyValues as $relationField){
+									$relation = $this->getter($relationField);
+									$temp[] = $child->$sub()->$relation();
+								}
+							}
+						}
+					}		
+				}
+			}else{
+				foreach ($value as $child) {
+					$temp[] =  $child->__toString();
+				}				
+			}			
+			return $temp ? implode('~', $temp) : null;
         } elseif ($value instanceof \DateTime) {
             return $value->format('Y-m-d H:i:s');
         } elseif(is_object($value)) {
             $fields = isset($config['fields']) ? $config['fields'] : null;
             $separator = isset($config['separator']) ? $config['separator'] : ' ';
-
-            if($fields) {
+            if(count($fields)>0){
                 $temp = null;
                 foreach ($fields as $child) {
                     $getterChild = $this->getter($child);
                     $temp[] =  $value->$getterChild();
                 }
                 return $temp ? implode($separator, $temp) : null;
-            } else {
-                return $value->__toString();
             }
+            return $value->__toString();
+
         } elseif(is_array($value)) {
             $fields = isset($config['fields']) ? $config['fields'] : null;
             $separator = isset($config['separator']) ? $config['separator'] : ' ';
