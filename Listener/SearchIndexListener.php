@@ -139,7 +139,7 @@ class SearchIndexListener
         if ($type == 'update') {
             $term = new Term($id, 'uuid');
             $docIds = $index->termDocs($term);
-            if($docIds) {
+            if(is_array($docIds) && count($docIds) > 0) {
                 foreach ($docIds as $docId) {
                     $index->delete($docId);
                 }
@@ -163,25 +163,28 @@ class SearchIndexListener
 
             $indexFields = $this->configManager->getIndexFields($entity_id);
             $searchContent = null;
-            foreach ($indexFields as $field) {
-                $value = null;
-                $settings = $this->configManager->getIndexFieldSettings($entity_id, $field);
-                $config['fields'] = isset($settings['fields']) ? $settings['fields'] : null;
-                $config['separator'] = isset($config['separator']) ? $config['separator'] : ' ';
-                $value = $this->configManager->getFieldValue($entity_id, $entity, $field, $config);
 
-                try {
-                    if (is_array($value)) {
-                        foreach($value as $val) {
-                            $doc->addField(Field::$settings['type']($field, $val));
-                            $searchContent .= $val;
+            if(is_array($indexFields) && count($indexFields)>0) {
+                foreach ($indexFields as $field) {
+                    $value = null;
+                    $settings = $this->configManager->getIndexFieldSettings($entity_id, $field);
+                    $config['fields'] = isset($settings['fields']) ? $settings['fields'] : null;
+                    $config['separator'] = isset($config['separator']) ? $config['separator'] : ' ';
+                    $value = $this->configManager->getFieldValue($entity_id, $entity, $field, $config);
+
+                    try {
+                        if (is_array($value)) {
+                            foreach ($value as $val) {
+                                $doc->addField(Field::$settings['type']($field, $val));
+                                $searchContent .= $val;
+                            }
+                        } else {
+                            $doc->addField(Field::$settings['type']($field, $value));
+                            $searchContent .= $value;
                         }
-                    } else {
-                        $doc->addField(Field::$settings['type']($field, $value));
-                        $searchContent .= $value;
+                    } catch (\Exception $e) {
+                        throw $e;
                     }
-                } catch (\Exception $e) {
-                    throw $e;
                 }
             }
             //default search field

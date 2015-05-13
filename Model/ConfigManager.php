@@ -173,7 +173,7 @@ class ConfigManager implements ConfigManagerInterface
         if ($value instanceof PersistentCollection) {
             $fields = isset($config['fields']) ? $config['fields'] : null;
             $separator = isset($config['separator']) ? $config['separator'] : ' ';
-			
+
 			/*
 			 Handle this Lucene index mapping configuration:
 			 
@@ -189,24 +189,34 @@ class ConfigManager implements ConfigManagerInterface
 			*/
 
             $temp = null;
-            if(count($fields)>0){
-				foreach ($value as $child) {				
-					foreach($fields as $field){						
-						foreach($field as $keyField=>$keyValues){
-							$sub = $this->getter($keyField);
-							if(is_array($keyValues)){
-								foreach($keyValues as $relationField){
-									$relation = $this->getter($relationField);
-									$temp[] = $child->$sub()->$relation();
-								}
-							}
-						}
-					}		
-				}
-			}else{
-				foreach ($value as $child) {
-					$temp[] =  $child->__toString();
-				}				
+            if(is_array($fields) && count($fields)>0){
+                if(count($value)>0) {
+                    foreach ($value as $child) {
+                        foreach($fields as $field){
+                            if(is_array($field)) {
+                                foreach($field as $keyField=>$keyValues){
+                                    $sub = $this->getter($keyField);
+
+                                    if(is_array($keyValues)){
+                                        foreach($keyValues as $relationField){
+                                            $relation = $this->getter($relationField);
+                                            $temp[] = $child->$sub()->$relation();
+                                        }
+                                    }
+                                }
+                            } else {
+                                $relation = $this->getter($field);
+                                $temp[] = $child->$relation();
+                            }
+                        }
+                    }
+                }
+			} else {
+                if(count($value)>0) {
+                    foreach ($value as $child) {
+                        $temp[] =  $child->__toString();
+                    }
+                }
 			}			
 			return $temp ? implode('~', $temp) : null;
         } elseif ($value instanceof \DateTime) {
@@ -223,19 +233,20 @@ class ConfigManager implements ConfigManagerInterface
                 return $temp ? implode($separator, $temp) : null;
             }
             return $value->__toString();
-
         } elseif(is_array($value)) {
             $fields = isset($config['fields']) ? $config['fields'] : null;
             $separator = isset($config['separator']) ? $config['separator'] : ' ';
             if($fields) {
                 $temp = null;
-                foreach ($fields as $child) {
-                    if(array_key_exists($child,$value)) {
+                if(count($fields)) {
+                    foreach ($fields as $child) {
+                        if(array_key_exists($child,$value)) {
 
-                        if(is_array($value[$child])) {
-                            $temp[] =  implode($separator, $value[$child]);
-                        } else {
-                            $temp[] =  $value[$child];
+                            if(is_array($value[$child])) {
+                                $temp[] =  implode($separator, $value[$child]);
+                            } else {
+                                $temp[] =  $value[$child];
+                            }
                         }
                     }
                 }
