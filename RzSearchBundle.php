@@ -12,7 +12,16 @@
 namespace Rz\SearchBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Rz\SearchBundle\DependencyInjection\Compiler\OverrideServiceCompilerPass;
 
 class RzSearchBundle extends Bundle
 {
+    /**
+     * {@inheritDoc}
+     */
+    public function build(ContainerBuilder $container)
+    {
+        $container->addCompilerPass(new OverrideServiceCompilerPass());
+    }
 }

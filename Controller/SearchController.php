@@ -60,12 +60,11 @@ class SearchController extends Controller
 
             $result =$client->find($search);
             $nbResults = count($result);
-            //$paginated = array_chunk($result, 2);
 
             if ($result) {
                 $adapter = new ArrayAdapter($result);
                 $pager = new Pagerfanta($adapter);
-                $pager->setMaxPerPage(1);
+                $pager->setMaxPerPage($this->container->getParameter('rz_search.settings.search.pagination_per_page') ?: 5);
                 $page = $request->query->get('page') ? $request->query->get('page') : 1;
                 $pager->setCurrentPage($page, false, true);
                 $response = $this->render('RzSearchBundle::lucene_results.html.twig', array('pager'=>$pager));
@@ -73,9 +72,6 @@ class SearchController extends Controller
                 $response = $this->render('RzSearchBundle::no_results.html.twig');
             }
         }
-
-
-
 
         return $response;
     }

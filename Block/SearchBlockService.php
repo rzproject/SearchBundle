@@ -26,10 +26,12 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Templating\EngineInterface;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Rz\SearchBundle\Model\ConfigManagerInterface;
 
 class SearchBlockService extends BaseBlockService
 {
     protected $container;
+    protected $templates;
 
     /**
      * @param string $name
@@ -77,6 +79,7 @@ class SearchBlockService extends BaseBlockService
                                                            'selectpicker_dropup' => true,
                                                            'label'=> 'Filter'
                            )),
+                           array('template', 'choice', array('choices' => $this->templates)),
                        )
                    ));
     }
@@ -104,5 +107,21 @@ class SearchBlockService extends BaseBlockService
      */
     public function validateBlock(ErrorElement $errorElement, BlockInterface $block){
 
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTemplates()
+    {
+        return $this->templates;
+    }
+
+    /**
+     * @param mixed $templates
+     */
+    public function setTemplates($templates)
+    {
+        $this->templates = $templates;
     }
 }

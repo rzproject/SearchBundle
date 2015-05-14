@@ -1,6 +1,6 @@
 <div class="rz-search-list-container">
     <h4 class="rz-search-list-title">
-        <a href="{{ url( route, { 'permalink': result.url }) }}">{{ result.title }}</a> | <b>{{ result.author }}</b>
+        <a href="{{ url( route, { 'permalink': result.url, '_format': 'html' }) }}">{{ result.title }}</a> | <b>{{ result.author }}</b>
     </h4>
     <div class="srz-search-list-information">
         <div class="srz-search-list-container">
