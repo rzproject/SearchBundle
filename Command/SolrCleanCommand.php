@@ -26,25 +26,17 @@ class SolrCleanCommand extends ContainerAwareCommand
         $output->getFormatter()->setStyle('rz-err', $error_style);
 
         if ($entityId) {
-
             $output->writeln(sprintf('<info>Reinitializing Apache Solr core for configuration: <rz-msg>%s</rz-msg></info>', $entityId));
-
-            //$configManager = $this->getContainer()->get('rz_search.config_manager');
             $client = $this->getContainer()->get('solarium.client');
-
             // get an update query instance
             $update = $client->createUpdate();
-
             // add the delete query and a commit command to the update query
             $update->addDeleteQuery('*:*');
             $update->addCommit();
-
             // this executes the query and returns the result
             $result = $client->update($update);
 
             $output->writeln('<info>Update query executed</info>');
-            $output->writeln(sprintf('<info>Query status: <rz-msg>%s</rz-msg></info>', $result->getStatus()));
-            $output->writeln(sprintf('<info>Query time: <rz-msg>%s</rz-msg></info>', $result->getQueryTime()));
         } else {
             $output->writeln('<rz-err>entity-id required!</rz-err>');
         }

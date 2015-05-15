@@ -13,10 +13,11 @@ class OverrideServiceCompilerPass implements CompilerPassInterface
         #####################
         # override blocks
         #####################
-        # Recent Post
+
+        # Search - This is how to do it to prevent BC-BREAK
         $definition = $container->getDefinition('rz.search.block.search');
         $definition->addMethodCall('setTemplates', array($container->getParameter('rz_search.block.search.templates')));
-
-
+        $definition->addMethodCall('setSecurityToken', array(new Reference('security.token_storage')));
+        $definition->addMethodCall('setSecurityChecker', array(new Reference('security.authorization_checker')));
     }
 }

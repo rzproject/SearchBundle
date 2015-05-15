@@ -34,9 +34,9 @@ class SolrIndexCommand extends ContainerAwareCommand
             $configManager = $this->getContainer()->get('rz_search.config_manager');
             $modelManager = $this->getContainer()->get($configManager->getModelManager($entity_id));
             $searchClient = $this->getContainer()->get('solarium.client');
+
             $update = $searchClient->createUpdate();
             $data = $modelManager->findAll();
-
             $doc = array();
             $len = count($data);
             $i = 0;
@@ -44,10 +44,8 @@ class SolrIndexCommand extends ContainerAwareCommand
             //TODO add pager for bulk index
             //for now pager is hard coded
             $batch_count = 0;
-
             $progress = $this->getHelperSet()->get('progress');
             $progress->start($output, $i);
-
             foreach($data as $model) {
                 if ($configManager->hasConfig($entity_id)) {
                     try {
@@ -56,11 +54,13 @@ class SolrIndexCommand extends ContainerAwareCommand
                         if ($batch_count >= 10 || ($i == $len - 1)) {
                             // add the documents and a commit command to the update query
                             $update->addDocuments($doc);
+                            $update->setOmitHeader(true);
                             $update->addCommit();
                             // this executes the query and returns the result
                             $result[] = $searchClient->update($update);
                             if($batch_count >= 10) {
                                 $batch_count = 0;
+                                $doc = array();
                             }
                         }
                         $batch_count++;

@@ -308,9 +308,19 @@ class ConfigManager implements ConfigManagerInterface
         return isset($this->configs[$model_id]['template']['result'][$type]) ? $this->configs[$model_id]['template']['result'][$type] : null;
     }
 
-    public function getSearchBlockTemplate($model_id)
+    public function getSearchTemplate($model_id, $type = 'lucene')
     {
-        return isset($this->configs[$model_id]['template']['search']) ? $this->configs[$model_id]['template']['search'] : null;
+        return isset($this->configs[$model_id]['template']['search'][$type]) ? $this->configs[$model_id]['template']['search'][$type] : null;
+    }
+
+    public function getEmptyTemplate($model_id)
+    {
+        return isset($this->configs[$model_id]['template']['empty']) ? $this->configs[$model_id]['template']['empty'] : null;
+    }
+
+    public function getNoResultTemplate($model_id)
+    {
+        return isset($this->configs[$model_id]['template']['no_result']) ? $this->configs[$model_id]['template']['no_result'] : null;
     }
 
     /**

@@ -61,13 +61,13 @@ class SearchHighlightExtension extends \Twig_Extension
     }
 
     public function renderSolr($id, $result, $highlight) {
-        $template = $this->configManager->getResultTemplate($id, 'solr');
+        $template = $this->configManager->getResultTemplate($id, 'solr') ?: 'RzSearchBundle:Search:news_solr_results.html.twig';
         $route = $this->configManager->getFieldRoute($id);
         return $this->environment->render($template, array('result'=>$result, 'highlighting'=>$highlight, 'route'=>$route));
     }
 
     public function renderLucene($id, $result, $highlight = null) {
-        $template = $this->configManager->getResultTemplate($id, 'lucene');
+        $template = $this->configManager->getResultTemplate($id, 'lucene') ?: 'RzSearchBundle:Search:news_lucene_results.html.twig';
         $route = $this->configManager->getFieldRoute($id);
         return $this->environment->render($template, array('result'=>$result, 'route'=>$route));
     }
