@@ -15,7 +15,7 @@
     "minimum-stability": "dev",
     "require": {
     	"symfony/framework-bundle": "~2.4",
-        "solarium/solarium": "~3.0",
+        "rmzamora/solarium": "3.3.0.*",
         "white-october/pagerfanta-bundle": "~1.0",
         "symfony/filesystem": "~2.1",
         "rmzamora/zendsearch": "dev-master"
