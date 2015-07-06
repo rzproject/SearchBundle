@@ -14,6 +14,7 @@ namespace Rz\SearchBundle;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Rz\SearchBundle\DependencyInjection\Compiler\OverrideServiceCompilerPass;
+use Rz\SearchBundle\DependencyInjection\Compiler\FieldProcessorCompilerPass;
 
 class RzSearchBundle extends Bundle
 {
@@ -23,5 +24,6 @@ class RzSearchBundle extends Bundle
     public function build(ContainerBuilder $container)
     {
         $container->addCompilerPass(new OverrideServiceCompilerPass());
+        $container->addCompilerPass(new FieldProcessorCompilerPass());
     }
 }

@@ -6,9 +6,19 @@
 
     <parameters>
         <parameter key="rz_search.config_manager.class">Rz\SearchBundle\Model\ConfigManager</parameter>
+        <parameter key="rz_search.manager.solr_index.class">Rz\SearchBundle\Model\SolrIndexManager</parameter>
+        <parameter key="rz_search.manager.lucene_index.class">Rz\SearchBundle\Model\LuceneIndexManager</parameter>
     </parameters>
 
     <services>
         <service id="rz_search.config_manager" class="%rz_search.config_manager.class%"/>
+
+        <service id="rz_search.manager.solr_index" class="%rz_search.manager.solr_index.class%">
+            <argument type="service" id="service_container" />
+        </service>
+
+        <service id="rz_search.manager.lucene_index" class="%rz_search.manager.lucene_index.class%">
+            <argument type="service" id="service_container" />
+        </service>
     </services>
 </container>

@@ -135,6 +135,14 @@ class ConfigManager implements ConfigManagerInterface
     /**
      * {@inheritdoc}
      */
+    public function getMediaManager($model_id)
+    {
+        return isset($this->configs[$model_id]['media_manager']) ? $this->configs[$model_id]['media_manager'] : null;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getModelClass($model_id)
     {
         return isset($this->configs[$model_id]['model_class']) ? $this->configs[$model_id]['model_class'] : null;
@@ -157,7 +165,6 @@ class ConfigManager implements ConfigManagerInterface
         return isset($this->configs[$model_id]['model_unindex_filter']) ? $this->configs[$model_id]['model_unindex_filter'] : null;
     }
 
-
     /**
      * {@inheritdoc}
      */
@@ -167,6 +174,7 @@ class ConfigManager implements ConfigManagerInterface
         if (!method_exists($entity, $getter)) {
             throw new \RuntimeException(sprintf("Class '%s' should have a method '%s'.", get_class($entity), $getter));
         }
+
 
         $value = $entity->$getter();
 
@@ -295,9 +303,33 @@ class ConfigManager implements ConfigManagerInterface
      */
     public function getIndexFieldSettings($model_id, $field)
     {
-
         if (array_key_exists($field, $this->getConfig($model_id)['field_map_settings'])) {
             return $this->getConfig($model_id)['field_map_settings'][$field];
+        } else {
+            return;
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getIndexFieldSettingsProcessor($model_id, $field)
+    {
+        if (array_key_exists($field, $this->getConfig($model_id)['field_map_settings']) &&
+            isset($this->getConfig($model_id)['field_map_settings'][$field]['processor']) &&
+            isset($this->getConfig($model_id)['field_map_settings'][$field]['processor']['service'])) {
+            return $this->getConfig($model_id)['field_map_settings'][$field]['processor']['service'];
+        } else {
+            return;
+        }
+    }
+
+    public function getIndexFieldSettingsProcessorOptions($model_id, $field)
+    {
+        if (array_key_exists($field, $this->getConfig($model_id)['field_map_settings']) &&
+            isset($this->getConfig($model_id)['field_map_settings'][$field]['processor']) &&
+            isset($this->getConfig($model_id)['field_map_settings'][$field]['processor']['options'])) {
+            return $this->getConfig($model_id)['field_map_settings'][$field]['processor']['options'];
         } else {
             return;
         }

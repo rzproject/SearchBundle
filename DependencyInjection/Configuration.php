@@ -32,7 +32,7 @@ class Configuration implements ConfigurationInterface
         $node = $treeBuilder->root('rz_search');
         $this->addBundleSettings($node);
         $this->addBlockSettings($node);
-
+        $this->addIndexSettings($node);
         return $treeBuilder;
     }
 
@@ -50,6 +50,18 @@ class Configuration implements ConfigurationInterface
                             ->addDefaultsIfNotSet()
                             ->children()
                                 ->scalarNode('pagination_per_page')->cannotBeEmpty()->defaultValue(5)->end()
+                            ->end()
+                        ->end()
+                        ->arrayNode('default_processors')
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->arrayNode('date_processor')
+                                    ->addDefaultsIfNotSet()
+                                    ->children()
+                                        ->scalarNode('class')->cannotBeEmpty()->defaultValue('Rz\\SearchBundle\\FieldProcessor\\DateFieldProcessor')->end()
+                                        ->scalarNode('date_format')->cannotBeEmpty()->defaultValue('Y-m-d H:i:s')->end()
+                                    ->end()
+                                ->end()
                             ->end()
                         ->end()
                     ->end()
@@ -191,6 +203,33 @@ class Configuration implements ConfigurationInterface
                                         ->end()
                                     ->end()
                                 ->end()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end();
+    }
+
+    /**
+     * @param \Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition $node
+     */
+    private function addIndexSettings(ArrayNodeDefinition $node)
+    {
+        $node
+            ->children()
+                ->arrayNode('index_manager')
+                ->addDefaultsIfNotSet()
+                    ->children()
+                        ->arrayNode('solr')
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->scalarNode('class')->cannotBeEmpty()->defaultValue('Rz\\SearchBundle\\Model\\SolrIndexManager')->end()
+                            ->end()
+                        ->end()
+                        ->arrayNode('lucene')
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->scalarNode('class')->cannotBeEmpty()->defaultValue('Rz\\SearchBundle\\Model\\LuceneIndexManager')->end()
                             ->end()
                         ->end()
                     ->end()
