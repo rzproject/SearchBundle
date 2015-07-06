@@ -25,7 +25,5 @@ class AbstractFieldProcessor implements FieldProcessorInterface
     {
         $this->configManager = $configManager;
     }
-
-
 }
 

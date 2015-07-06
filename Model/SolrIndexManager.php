@@ -48,6 +48,7 @@ class SolrIndexManager extends IndexManager
             $value = null;
             //USE FIELD PROCESSOR
             $processorService = $this->getConfigManager()->getIndexFieldSettingsProcessor($entityId, $field);
+
             if($processorService) {
                 if($this->getContainer()->has($processorService)) {
                     $processor = $this->getContainer()->get($processorService);
@@ -61,6 +62,7 @@ class SolrIndexManager extends IndexManager
             }
 
             try {
+                //array condition will be depricated on 1.2
                 if (is_array($value)) {
                     foreach($value as $val) {
                         $doc->addField($field, $val);

@@ -315,24 +315,26 @@ class ConfigManager implements ConfigManagerInterface
      */
     public function getIndexFieldSettingsProcessor($model_id, $field)
     {
-        if (array_key_exists($field, $this->getConfig($model_id)['field_map_settings']) &&
-            isset($this->getConfig($model_id)['field_map_settings'][$field]['processor']) &&
-            isset($this->getConfig($model_id)['field_map_settings'][$field]['processor']['service'])) {
-            return $this->getConfig($model_id)['field_map_settings'][$field]['processor']['service'];
-        } else {
-            return;
+        if($map = $this->getFieldMap($model_id, $field)) {
+            if (array_key_exists($map, $this->getConfig($model_id)['field_map_settings']) &&
+                isset($this->getConfig($model_id)['field_map_settings'][$map]['processor']) &&
+                isset($this->getConfig($model_id)['field_map_settings'][$map]['processor']['service'])) {
+                return $this->getConfig($model_id)['field_map_settings'][$map]['processor']['service'];
+            }
         }
+        return;
     }
 
     public function getIndexFieldSettingsProcessorOptions($model_id, $field)
     {
-        if (array_key_exists($field, $this->getConfig($model_id)['field_map_settings']) &&
-            isset($this->getConfig($model_id)['field_map_settings'][$field]['processor']) &&
-            isset($this->getConfig($model_id)['field_map_settings'][$field]['processor']['options'])) {
-            return $this->getConfig($model_id)['field_map_settings'][$field]['processor']['options'];
-        } else {
-            return;
+        if($map = $this->getFieldMap($model_id, $field)) {
+            if (array_key_exists($map, $this->getConfig($model_id)['field_map_settings']) &&
+                isset($this->getConfig($model_id)['field_map_settings'][$map]['processor']) &&
+                isset($this->getConfig($model_id)['field_map_settings'][$map]['processor']['options'])) {
+                return $this->getConfig($model_id)['field_map_settings'][$map]['processor']['options'];
+            }
         }
+        return;
     }
 
     public function getResultTemplate($model_id, $type = 'lucene')
