@@ -7,6 +7,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
+use Symfony\Component\Console\Helper\ProgressBar;
 
 class SolrIndexCommand extends ContainerAwareCommand
 {
@@ -20,11 +21,17 @@ class SolrIndexCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $entity = $input->getOption('entity');
-        $info_style = new OutputFormatterStyle('blue', null, array('bold'));
+        $info_style = new OutputFormatterStyle('white', null, array('bold'));
         $output->getFormatter()->setStyle('rz-msg', $info_style);
 
         $error_style = new OutputFormatterStyle('red', null, array('bold'));
         $output->getFormatter()->setStyle('rz-err', $error_style);
+
+        $msg_progress_style = new OutputFormatterStyle('yellow', null, array('bold'));
+        $output->getFormatter()->setStyle('rz-msg-progress', $msg_progress_style);
+
+        $msg_progress_style2 = new OutputFormatterStyle('cyan', null, array('bold'));
+        $output->getFormatter()->setStyle('rz-msg-progress2', $msg_progress_style2);
 
         if ($entity) {
             $output->writeln(sprintf('<info>Indexing entity: <rz-msg>%s</rz-msg></info>', $entity));
@@ -43,12 +50,22 @@ class SolrIndexCommand extends ContainerAwareCommand
                 $result = array();
                 //for now pager is hard coded
                 $batch_count = 0;
-                $progress = $this->getHelperSet()->get('progress');
-
                 try {
+
+                    $totalCount = count($data);
+                    $progress = new ProgressBar($output, $totalCount);
+                    $progress->setFormat('<info>%message%</info>  <rz-msg-progress>%current%/%max%</rz-msg-progress> [%bar%] <rz-msg-progress>%percent:3s%%</rz-msg-progress> <rz-msg-progress2>%elapsed:6s%/%estimated:-6s%</rz-msg-progress2> <rz-err>%memory:6s%</rz-err>');
+                    $progress->setRedrawFrequency(10);
+                    $progress->setBarCharacter('<comment>=</comment>');
+                    $progress->setEmptyBarCharacter(' ');
+                    $progress->setProgressCharacter('|');
+                    $progress->setBarWidth(50);
+                    $i = 0;
+                    $progress->setMessage('...');
+                    $progress->start();
+                    $progress->clear();
+                    $progress->display();
                     $indexObject = $searchClient->createUpdate();
-                    //TODO add pager for bulk index
-                    $progress->start($output, $i);
                     foreach($data as $model) {
                         if ($configManager->hasConfig($entity_id)) {
                             try {
@@ -72,6 +89,7 @@ class SolrIndexCommand extends ContainerAwareCommand
                             }
                         }
                         $i++;
+                        $progress->setMessage('Indexing in progress...');
                         $progress->advance();
                         sleep(.25);
                     }
@@ -79,7 +97,9 @@ class SolrIndexCommand extends ContainerAwareCommand
                     throw $e;
                 }
 
+                $progress->setMessage('Indexing finished');
                 $progress->finish();
+                $output->writeln(sprintf('<info> Finish indexing %s data!</info>', $totalCount));
 
             }
             $output->writeln(sprintf('<info>Finish indexing: <rz-msg>%s</rz-msg></info>', $entity));
