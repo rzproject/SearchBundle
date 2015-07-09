@@ -10,7 +10,7 @@ Uses a forked version of NelmioSolariumBundle.
 
 ## Note
 
-**STABLE VERSION**
+**DEVELOPMENT VERSION**
 
 ## License
 
