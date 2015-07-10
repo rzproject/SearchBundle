@@ -14,10 +14,10 @@
     ],
     "minimum-stability": "dev",
     "require": {
-    	"symfony/framework-bundle": "~2.4",
+        "symfony/framework-bundle": "~2.4",
+        "rmzamora/solarium": "3.3.0.*",
         "white-october/pagerfanta-bundle": "~1.0",
         "symfony/filesystem": "~2.1",
-        "rmzamora/solarium": "3.3.0.*",
         "rmzamora/zendsearch": "dev-master"
     },
     "autoload": {
@@ -25,7 +25,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-1.1.0": "1.1.0.x-dev"
+            "dev-1.1": "1.1.x-dev"
         }
     }
 }
