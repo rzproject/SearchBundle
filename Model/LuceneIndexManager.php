@@ -12,13 +12,35 @@
 namespace Rz\SearchBundle\Model;
 
 use Rz\SearchBundle\FieldProcessor\FieldProcessorInterface;
+use ZendSearch\Lucene\Index\Term;
+use ZendSearch\Lucene\Document;
+use ZendSearch\Lucene\Document\Field;
 
 class LuceneIndexManager extends IndexManager
 {
-    public function indexData($type, $entity, $entityId, $isIndex = true) {
 
-        $searchClient = $this->getSearchClient($entityId);
-        $id =  $this->getConfigManager()->getModelIdentifier($entityId).'_'.$entity->getId();
+    public function processIndexData($type, $entity, $entityId, $isIndex = true) {
+
+        $indexObject = $this->getSearchClient($entityId);
+
+        try {
+            $document = $this->indexData($type, $indexObject, $entity, $entityId, $isIndex);
+            // add the documents and a commit command to the update query
+            $indexObject->addDocument($document);
+            $indexObject->commit();
+            // If you want you can optimize your index
+            $indexObject->optimize();
+            // this executes the query and returns the result
+            return $indexObject;
+        } catch(\Exception $e) {
+            throw $e;
+        }
+    }
+
+    public function indexData($type, $indexObject, $entity, $entity_id, $isIndex = true) {
+
+        $searchClient = $this->getSearchClient($entity_id);
+        $id =  $this->getConfigManager()->getModelIdentifier($entity_id).'_'.$entity->getId();
 
         if ($type == 'update') {
             $term = new Term($id, 'uuid');
@@ -36,34 +58,34 @@ class LuceneIndexManager extends IndexManager
 
             $doc->addField(Field::keyword('uuid', $id));
             $doc->addField(Field::keyword('model_id', $entity->getId()));
-            $doc->addField(Field::keyword('index_type', $entityId));
+            $doc->addField(Field::keyword('index_type', $entity_id));
 
-            $routeGenerator = $this->getRouteGenerator($entityId);
+            $routeGenerator = $this->getRouteGenerator($entity_id);
 
             if($routeGenerator) {
                 $doc->addField(Field::unIndexed('url', $routeGenerator->generate($entity)));
             }
 
-            $indexFields =  $this->getConfigManager()->getIndexFields($entityId);
+            $indexFields =  $this->getConfigManager()->getIndexFields($entity_id);
             $searchContent = null;
 
             if(is_array($indexFields) && count($indexFields)>0) {
                 foreach ($indexFields as $field) {
                     $value = null;
-                    $settings =  $this->getConfigManager()->getIndexFieldSettings($entityId, $field);
+                    $settings =  $this->getConfigManager()->getIndexFieldSettings($entity_id, $field);
                     $value = null;
                     //USE FIELD PROCESSOR
-                    $processorService = $this->getConfigManager()->getIndexFieldSettingsProcessor($entityId, $field);
+                    $processorService = $this->getConfigManager()->getIndexFieldSettingsProcessor($entity_id, $field);
                     if($processorService) {
                         if($this->getContainer()->has($processorService)) {
                             $processor = $this->getContainer()->get($processorService);
                             if($processor instanceof FieldProcessorInterface) {
-                                $processorOptions = $this->getConfigManager()->getIndexFieldSettingsProcessorOptions($entityId, $field) ?: array();
-                                $value = $processor->processFieldIndexValue($entityId, $entity, $field, $processorOptions);
+                                $processorOptions = $this->getConfigManager()->getIndexFieldSettingsProcessorOptions($entity_id, $field) ?: array();
+                                $value = $processor->processFieldIndexValue($entity_id, $entity, $field, $processorOptions);
                             }
                         }
                     } else {
-                        $value = $this->getConfigManager()->getFieldValue($entityId, $entity, $field);
+                        $value = $this->getConfigManager()->getFieldValue($entity_id, $entity, $field);
                     }
 
                     try {
@@ -84,14 +106,7 @@ class LuceneIndexManager extends IndexManager
             //default search field
             $doc->addField(Field::unStored('searchContent', $searchContent));
 
-            // Add your document to the index
-            $searchClient->addDocument($doc);
-            // Commit your change
-            $searchClient->commit();
-            // If you want you can optimize your index
-            $searchClient->optimize();
-
-            return $searchClient;
+            return $doc;
         }
     }
 }
