@@ -34,6 +34,8 @@ class SearchController extends Controller
             return $response;
         }
 
+        $search =  preg_replace('/[^a-zA-Z0-9_.]/', ' ', $search);
+
 
         if ($this->container->getParameter('rz_search.engine.solr.enabled')) {
             $client = $this->container->get(sprintf('solarium.client.%s', $type));
