@@ -135,6 +135,14 @@ class ConfigManager implements ConfigManagerInterface
     /**
      * {@inheritdoc}
      */
+    public function getMediaManager($model_id)
+    {
+        return isset($this->configs[$model_id]['media_manager']) ? $this->configs[$model_id]['media_manager'] : null;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getModelClass($model_id)
     {
         return isset($this->configs[$model_id]['model_class']) ? $this->configs[$model_id]['model_class'] : null;
@@ -157,7 +165,6 @@ class ConfigManager implements ConfigManagerInterface
         return isset($this->configs[$model_id]['model_unindex_filter']) ? $this->configs[$model_id]['model_unindex_filter'] : null;
     }
 
-
     /**
      * {@inheritdoc}
      */
@@ -168,28 +175,92 @@ class ConfigManager implements ConfigManagerInterface
             throw new \RuntimeException(sprintf("Class '%s' should have a method '%s'.", get_class($entity), $getter));
         }
 
+
         $value = $entity->$getter();
 
         if ($value instanceof PersistentCollection) {
+            $fields = isset($config['fields']) ? $config['fields'] : null;
+            $separator = isset($config['separator']) ? $config['separator'] : ' ';
+
+			/*
+			 Handle this Lucene index mapping configuration:
+			 
+			 field_map_settings:
+				 postHasCategory:
+					 fields :
+					   - category:   <-- Relation Field
+						  - slug	 <-- Relation Return Field
+					 separator: ~
+					 filter : ~
+					 type : unStored
+						 
+			*/
+
             $temp = null;
-            foreach ($value as $child) {
-                $temp[] =  $child->__toString();
-            }
-            return $temp;
+            if(is_array($fields) && count($fields)>0){
+                if(count($value)>0) {
+                    foreach ($value as $child) {
+                        foreach($fields as $field){
+                            if(is_array($field)) {
+                                foreach($field as $keyField=>$keyValues){
+                                    $sub = $this->getter($keyField);
+
+                                    if(is_array($keyValues)){
+                                        foreach($keyValues as $relationField){
+                                            $relation = $this->getter($relationField);
+                                            $temp[] = $child->$sub()->$relation();
+                                        }
+                                    }
+                                }
+                            } else {
+                                $relation = $this->getter($field);
+                                $temp[] = $child->$relation();
+                            }
+                        }
+                    }
+                }
+			} else {
+                if(count($value)>0) {
+                    foreach ($value as $child) {
+                        $temp[] =  $child->__toString();
+                    }
+                }
+			}			
+			return $temp ? implode('~', $temp) : null;
         } elseif ($value instanceof \DateTime) {
             return $value->format('Y-m-d H:i:s');
         } elseif(is_object($value)) {
             $fields = isset($config['fields']) ? $config['fields'] : null;
             $separator = isset($config['separator']) ? $config['separator'] : ' ';
-            if($fields) {
+            if(count($fields)>0){
                 $temp = null;
                 foreach ($fields as $child) {
                     $getterChild = $this->getter($child);
                     $temp[] =  $value->$getterChild();
                 }
                 return $temp ? implode($separator, $temp) : null;
+            }
+            return $value->__toString();
+        } elseif(is_array($value)) {
+            $fields = isset($config['fields']) ? $config['fields'] : null;
+            $separator = isset($config['separator']) ? $config['separator'] : ' ';
+            if($fields) {
+                $temp = null;
+                if(count($fields)) {
+                    foreach ($fields as $child) {
+                        if(array_key_exists($child,$value)) {
+
+                            if(is_array($value[$child])) {
+                                $temp[] =  implode($separator, $value[$child]);
+                            } else {
+                                $temp[] =  $value[$child];
+                            }
+                        }
+                    }
+                }
+                return $temp ? implode($separator, $temp) : null;
             } else {
-                return $value->__toString();
+                return;
             }
         } else {
             return $value;
@@ -232,7 +303,6 @@ class ConfigManager implements ConfigManagerInterface
      */
     public function getIndexFieldSettings($model_id, $field)
     {
-
         if (array_key_exists($field, $this->getConfig($model_id)['field_map_settings'])) {
             return $this->getConfig($model_id)['field_map_settings'][$field];
         } else {
@@ -240,14 +310,51 @@ class ConfigManager implements ConfigManagerInterface
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function getIndexFieldSettingsProcessor($model_id, $field)
+    {
+        if($map = $this->getFieldMap($model_id, $field)) {
+            if (array_key_exists($map, $this->getConfig($model_id)['field_map_settings']) &&
+                isset($this->getConfig($model_id)['field_map_settings'][$map]['processor']) &&
+                isset($this->getConfig($model_id)['field_map_settings'][$map]['processor']['service'])) {
+                return $this->getConfig($model_id)['field_map_settings'][$map]['processor']['service'];
+            }
+        }
+        return;
+    }
+
+    public function getIndexFieldSettingsProcessorOptions($model_id, $field)
+    {
+        if($map = $this->getFieldMap($model_id, $field)) {
+            if (array_key_exists($map, $this->getConfig($model_id)['field_map_settings']) &&
+                isset($this->getConfig($model_id)['field_map_settings'][$map]['processor']) &&
+                isset($this->getConfig($model_id)['field_map_settings'][$map]['processor']['options'])) {
+                return $this->getConfig($model_id)['field_map_settings'][$map]['processor']['options'];
+            }
+        }
+        return;
+    }
+
     public function getResultTemplate($model_id, $type = 'lucene')
     {
         return isset($this->configs[$model_id]['template']['result'][$type]) ? $this->configs[$model_id]['template']['result'][$type] : null;
     }
 
-    public function getSearchBlockTemplate($model_id)
+    public function getSearchTemplate($model_id, $type = 'lucene')
     {
-        return isset($this->configs[$model_id]['template']['search']) ? $this->configs[$model_id]['template']['search'] : null;
+        return isset($this->configs[$model_id]['template']['search'][$type]) ? $this->configs[$model_id]['template']['search'][$type] : null;
+    }
+
+    public function getEmptyTemplate($model_id)
+    {
+        return isset($this->configs[$model_id]['template']['empty']) ? $this->configs[$model_id]['template']['empty'] : null;
+    }
+
+    public function getNoResultTemplate($model_id)
+    {
+        return isset($this->configs[$model_id]['template']['no_result']) ? $this->configs[$model_id]['template']['no_result'] : null;
     }
 
     /**

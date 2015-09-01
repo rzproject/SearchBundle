@@ -10,8 +10,10 @@ Uses a forked version of NelmioSolariumBundle.
 
 ## Note
 
-Still in heavy development and supports only Solr client via Solarium.
+**DEVELOPMENT VERSION**
 
 ## License
 
 Released under the MIT License, see LICENSE.
+
+Back to: [rzproject](http://rzproject.github.io)

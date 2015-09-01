@@ -13,7 +13,7 @@ namespace Rz\SearchBundle\Block;
 
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Admin\Admin;
-use Sonata\AdminBundle\Validator\ErrorElement;
+use Sonata\CoreBundle\Validator\ErrorElement;
 
 use Sonata\BlockBundle\Block\BlockContextInterface;
 use Sonata\BlockBundle\Model\BlockInterface;
@@ -30,6 +30,9 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class SearchBlockService extends BaseBlockService
 {
     protected $container;
+    protected $templates;
+    protected $securityToken;
+    protected $securityChecker;
 
     /**
      * @param string $name
@@ -75,8 +78,8 @@ class SearchBlockService extends BaseBlockService
                            array('title', 'text', array('required' => false, 'label'=> 'Title')),
                            array('filter', 'choice', array('choices' => $configs,
                                                            'selectpicker_dropup' => true,
-                                                           'label'=> 'Filter'
-                           )),
+                                                           'label'=> 'Filter')),
+                           array('template', 'choice', array('choices' => $this->templates)),
                        )
                    ));
     }
@@ -88,11 +91,17 @@ class SearchBlockService extends BaseBlockService
     {
         $query = $this->container->get('request')->query->get('rz_q');
 
-        return $this->renderPrivateResponse($blockContext->getTemplate(), array(
-                     'rz_q' => $query,
-                     'block'     => $blockContext->getBlock(),
-                     'settings'  => $blockContext->getSettings()
-                 ), $response);
+        $parameters =array(
+            'rz_q' => $query,
+            'block'     => $blockContext->getBlock(),
+            'settings'  => $blockContext->getSettings()
+        );
+
+        if ($this->securityChecker->isGranted('IS_AUTHENTICATED_FULLY')) {
+            return $this->renderPrivateResponse($blockContext->getTemplate(), $parameters, $response);
+        }
+
+        return $this->renderResponse($blockContext->getTemplate(), $parameters, $response);
     }
 
 
@@ -104,5 +113,53 @@ class SearchBlockService extends BaseBlockService
      */
     public function validateBlock(ErrorElement $errorElement, BlockInterface $block){
 
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTemplates()
+    {
+        return $this->templates;
+    }
+
+    /**
+     * @param mixed $templates
+     */
+    public function setTemplates($templates)
+    {
+        $this->templates = $templates;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSecurityToken()
+    {
+        return $this->securityToken;
+    }
+
+    /**
+     * @param mixed $securityToken
+     */
+    public function setSecurityToken($securityToken)
+    {
+        $this->securityToken = $securityToken;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSecurityChecker()
+    {
+        return $this->securityChecker;
+    }
+
+    /**
+     * @param mixed $securityChecker
+     */
+    public function setSecurityChecker($securityChecker)
+    {
+        $this->securityChecker = $securityChecker;
     }
 }

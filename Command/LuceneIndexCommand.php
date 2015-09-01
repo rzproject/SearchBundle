@@ -43,11 +43,12 @@ class LuceneIndexCommand extends ContainerAwareCommand
                     $modelManager = $this->getContainer()->get($modelManagerId);
                     $filters = $configManager->getModelIndexFilter($identifier);
 
+
                     if($modelManager) {
 
                         $index = $this->getContainer()->get('rz_search.zend_lucene')->getIndex($identifier);
 
-                        $askTheExperts = $modelManager->findAll();
+                        $entities = $modelManager->findAll();
 
                         $progress = $this->getHelperSet()->get('progress');
                         $doc = null;
@@ -55,10 +56,10 @@ class LuceneIndexCommand extends ContainerAwareCommand
 
                         $progress->start($output, $i);
 
-                        foreach($askTheExperts as $entity) {
+                        foreach($entities as $entity) {
 
                             $val = null;
-                            if ($filters) {
+                            if (is_array($filters) && count($filters)>0) {
                                 foreach($filters as $fieldName=>$filter) {
                                     $getter = 'get'.ucfirst($fieldName);
                                     switch ($filter['operand']) {
@@ -122,13 +123,10 @@ class LuceneIndexCommand extends ContainerAwareCommand
     {
         $id = $configManager->getModelIdentifier($entity_id).'_'.$entity->getId();
 
-//        $key = str_pad($entity->getId(), 10, "0", STR_PAD_LEFT);
-
-
         if ($type == 'update') {
             $term = new Term($id, 'uuid');
             $docIds = $index->termDocs($term);
-            if($docIds) {
+            if(is_array($docIds) && count($docIds) > 0) {
                 foreach ($docIds as $docId) {
                     $index->delete($docId);
                 }
@@ -139,7 +137,6 @@ class LuceneIndexCommand extends ContainerAwareCommand
         $doc = new Document();
 
         $doc->addField(Field::keyword('uuid', $id));
-//        $doc->addField(Field::keyword('content_key', $key));
         $doc->addField(Field::keyword('model_id', $entity->getId()));
         $doc->addField(Field::keyword('index_type', $entity_id));
 
@@ -153,29 +150,32 @@ class LuceneIndexCommand extends ContainerAwareCommand
         $indexFields = $configManager->getIndexFields($entity_id);
 
         $searchContent = null;
-        foreach ($indexFields as $field) {
-            $value = null;
-            $settings = $configManager->getIndexFieldSettings($entity_id, $field);
 
-            $config = isset($settings['fields']) ? $settings['fields'] : null;
-            $value = $configManager->getFieldValue($entity_id, $entity, $field, $config);
+        if(is_array($indexFields) && count($indexFields)>0) {
+            foreach ($indexFields as $field) {
+                $value = null;
+                $settings = $configManager->getIndexFieldSettings($entity_id, $field);
+                $config['fields'] = isset($settings['fields']) ? $settings['fields'] : null;
+                $config['separator'] = isset($config['separator']) ? $config['separator'] : ' ';
+                $value = $configManager->getFieldValue($entity_id, $entity, $field, $config);
 
-            try {
-                if (is_array($value)) {
-                    foreach($value as $val) {
-                        $doc->addField(Field::$settings['type']($field, $val));
-                        $searchContent .= $val;
+                try {
+                    if (is_array($value) && count($value)>0) {
+                        foreach($value as $val) {
+                            $doc->addField(Field::$settings['type']($field, $val));
+                            $searchContent .= $val;
+                        }
+                    } else {
+                        $doc->addField(Field::$settings['type']($field, $value));
+                        $searchContent .= $value;
                     }
-                } else {
-                    $doc->addField(Field::$settings['type']($field, $value));
-                    $searchContent .= $value;
+                } catch (\Exception $e) {
+                    throw $e;
                 }
-            } catch (\Exception $e) {
-                throw $e;
             }
+            //default search field
+            $doc->addField(Field::unStored('searchContent', $searchContent));
         }
-        //default search field
-        $doc->addField(Field::unStored('searchContent', $searchContent));
         return $doc;
     }
 }

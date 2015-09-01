@@ -1,14 +1,19 @@
 <h1>{{ pager.getNbResults }} Search Results</h1>
+
 <div class="sonata-blog-post-list">
-    {% set results = pager.getAdapter.getResultSet %}
+    {% set results = pager.getCurrentPageResults %}
     {% set highlight = results.getHighlighting %}
-    {% for result in results %}
-        {% set content= rz_search_render_solr_result('sonata.news.post',result, highlight) %}
-        {{  content | raw }}
+    {% if type is defined %}
+        {% for result in results %}
+            {% set content= rz_search_render_solr_result(type,result, highlight) %}
+            {{  content | raw }}
+        {% else %}
+            {{ 'no_post_found'|trans({}, 'SonataNewsBundle') }}
+        {% endfor %}
+        {% if pager.haveToPaginate %}
+            {{ pagerfanta(pager, 'rz_search_pagerfanta') }}
+        {% endif %}
     {% else %}
-        {{ 'no_post_found'|trans({}, 'SonataNewsBundle') }}
-    {% endfor %}
-    {% if pager.haveToPaginate %}
-        {{ pagerfanta(pager, 'rz_search_pagerfanta') }}
+        <h1>{{ type }} is not defined index!</h1>
     {% endif %}
 </div>

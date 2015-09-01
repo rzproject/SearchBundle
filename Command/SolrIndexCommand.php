@@ -7,7 +7,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
-use Rz\SearchBundle\Model\ConfigManagerInterface;
+use Symfony\Component\Console\Helper\ProgressBar;
 
 class SolrIndexCommand extends ContainerAwareCommand
 {
@@ -21,11 +21,17 @@ class SolrIndexCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $entity = $input->getOption('entity');
-        $info_style = new OutputFormatterStyle('blue', null, array('bold'));
+        $info_style = new OutputFormatterStyle('white', null, array('bold'));
         $output->getFormatter()->setStyle('rz-msg', $info_style);
 
         $error_style = new OutputFormatterStyle('red', null, array('bold'));
         $output->getFormatter()->setStyle('rz-err', $error_style);
+
+        $msg_progress_style = new OutputFormatterStyle('yellow', null, array('bold'));
+        $output->getFormatter()->setStyle('rz-msg-progress', $msg_progress_style);
+
+        $msg_progress_style2 = new OutputFormatterStyle('cyan', null, array('bold'));
+        $output->getFormatter()->setStyle('rz-msg-progress2', $msg_progress_style2);
 
         if ($entity) {
             $output->writeln(sprintf('<info>Indexing entity: <rz-msg>%s</rz-msg></info>', $entity));
@@ -34,83 +40,71 @@ class SolrIndexCommand extends ContainerAwareCommand
             $configManager = $this->getContainer()->get('rz_search.config_manager');
             $modelManager = $this->getContainer()->get($configManager->getModelManager($entity_id));
             $searchClient = $this->getContainer()->get('solarium.client');
-            $update = $searchClient->createUpdate();
-            $data = $modelManager->findAll();
+            $indexManager = $this->getContainer()->get('rz_search.manager.solr_index');
 
-            $doc = array();
-            $len = count($data);
-            $i = 0;
-            $result = array();
-            //TODO add pager for bulk index
-            //for now pager is hard coded
-            $batch_count = 0;
+            if($indexManager) {
+                $data = $modelManager->findAll();
+                $doc = array();
+                $len = count($data);
+                $i = 0;
+                $result = array();
+                //for now pager is hard coded
+                $batch_count = 0;
+                try {
 
-            $progress = $this->getHelperSet()->get('progress');
-            $progress->start($output, $i);
-
-            foreach($data as $model) {
-                if ($configManager->hasConfig($entity_id)) {
-                    try {
-                        $doc[$batch_count] = $this->indexData($configManager, $update, $model, $entity_id);
-                        // commit every after batch count
-                        if ($batch_count >= 10 || ($i == $len - 1)) {
-                            // add the documents and a commit command to the update query
-                            $update->addDocuments($doc);
-                            $update->addCommit();
-                            // this executes the query and returns the result
-                            $result[] = $searchClient->update($update);
-                            if($batch_count >= 10) {
-                                $batch_count = 0;
+                    $totalCount = count($data);
+                    $progress = new ProgressBar($output, $totalCount);
+                    $progress->setFormat('<info>%message%</info>  <rz-msg-progress>%current%/%max%</rz-msg-progress> [%bar%] <rz-msg-progress>%percent:3s%%</rz-msg-progress> <rz-msg-progress2>%elapsed:6s%/%estimated:-6s%</rz-msg-progress2> <rz-err>%memory:6s%</rz-err>');
+                    $progress->setRedrawFrequency(10);
+                    $progress->setBarCharacter('<comment>=</comment>');
+                    $progress->setEmptyBarCharacter(' ');
+                    $progress->setProgressCharacter('|');
+                    $progress->setBarWidth(50);
+                    $i = 0;
+                    $progress->setMessage('...');
+                    $progress->start();
+                    $progress->clear();
+                    $progress->display();
+                    $indexObject = $searchClient->createUpdate();
+                    foreach($data as $model) {
+                        if ($configManager->hasConfig($entity_id)) {
+                            try {
+                                $doc[$batch_count] = $indexManager->indexData('insert', $indexObject, $model, $entity_id);
+                                // commit every after batch count
+                                if ($batch_count >= 10 || ($i == $len - 1)) {
+                                    // add the documents and a commit command to the update query
+                                    $indexObject->addDocuments($doc);
+                                    $indexObject->setOmitHeader(true);
+                                    $indexObject->addCommit();
+                                    // this executes the query and returns the result
+                                    $result[] = $searchClient->update($indexObject);
+                                    if($batch_count >= 10) {
+                                        $batch_count = 0;
+                                        $doc = array();
+                                    }
+                                }
+                                $batch_count++;
+                            } catch (\Exception $e) {
+                                throw $e;
                             }
                         }
-                        $batch_count++;
-                    } catch (\Exception $e) {
-                        throw $e;
+                        $i++;
+                        $progress->setMessage('Indexing in progress...');
+                        $progress->advance();
+                        sleep(.25);
                     }
+                } catch(\Exception $e) {
+                    throw $e;
                 }
-                $i++;
-                $progress->advance();
-                sleep(.25);
+
+                $progress->setMessage('Indexing finished');
+                $progress->finish();
+                $output->writeln(sprintf('<info> Finish indexing %s data!</info>', $totalCount));
+
             }
-            $progress->finish();
             $output->writeln(sprintf('<info>Finish indexing: <rz-msg>%s</rz-msg></info>', $entity));
         } else {
             $output->writeln('<rz-err>Option entity required!</rz-err>');
         }
-    }
-
-    protected function indexData($configManager, $update, $entity, $entity_id)
-    {
-
-        // create a new document for the data
-        $doc = $update->createDocument();
-        $doc->setField('id', $configManager->getModelIdentifier($entity_id).'_'.$entity->getId());
-        $doc->setField('model_id', $entity->getId());
-        $doc->setField('index_type', $entity_id);
-
-        // generate route
-        $route = $configManager->getFieldRouteGenerator($entity_id);
-        $routeGenerator = $this->getContainer()->get($configManager->getFieldRouteGenerator($entity_id));
-        $doc->setField('url', $routeGenerator->generate($entity));
-
-        $indexFields = $configManager->getIndexFields($entity_id);
-
-        foreach ($indexFields as $field) {
-            $value = null;
-            $value = $configManager->getFieldValue($entity_id, $entity, $field);
-            try {
-                if (is_array($value)) {
-                    foreach($value as $val) {
-                        $doc->addField($field, $val);
-                    }
-                } else {
-                    $doc->setField($field, $value);
-                }
-            } catch (\Exception $e) {
-                throw $e;
-            }
-        }
-
-        return $doc;
     }
 }

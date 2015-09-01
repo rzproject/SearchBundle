@@ -159,13 +159,16 @@ class RzSearchExtension extends Extension
             $this->zendLuceneSettings($config_zend_lucene['settings'], $container, $config['configs']);
         }
 
-
-        $loader->load('listener.xml');
         $loader->load('search.xml');
         $loader->load('twig.xml');
         $loader->load('block.xml');
         $loader->load('pagerfanta.xml');
+        $loader->load('default_processors.xml');
         $this->registerSearchSettings($config, $container);
+        $this->configureBlocks($config['blocks'], $container);
+        $this->configureSettings($config['settings'], $container);
+        $this->configureFieldProcessors($config['settings']['default_processors'], $container);
+        $this->configureIndexManager($config['index_manager'], $container);
     }
 
     /**
@@ -201,5 +204,53 @@ class RzSearchExtension extends Extension
                 }
             }
         }
+    }
+
+    /**
+     * @param array                                                   $config
+     * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container
+     *
+     * @return void
+     */
+    public function configureBlocks($config, ContainerBuilder $container)
+    {
+        $container->setParameter('rz_search.block.search.class', $config['search']['class']);
+
+        # template
+        $temp = $config['search']['templates'];
+        $templates = array();
+        foreach ($temp as $template) {
+            $templates[$template['path']] = $template['name'];
+        }
+        $container->setParameter('rz_search.block.search.templates', $templates);
+
+    }
+
+    /**
+     * @param array                                                   $config
+     * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container
+     *
+     * @return void
+     */
+    public function configureSettings($config, ContainerBuilder $container)
+    {
+        $container->setParameter('rz_search.settings.search.pagination_per_page', $config['search']['pagination_per_page']);
+    }
+
+    /**
+     * @param array                                                   $config
+     * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container
+     *
+     * @return void
+     */
+    public function configureFieldProcessors($config, ContainerBuilder $container)
+    {
+        $container->setParameter('rz_search.field_processor.date.class', $config['date_processor']['class']);
+        $container->setParameter('rz_search.field_processor.date.date_format', $config['date_processor']['date_format']);
+    }
+
+    public function configureIndexManager($config, ContainerBuilder $container) {
+        $container->setParameter('rz_search.manager.solr_index.class', $config['solr']['class']);
+        $container->setParameter('rz_search.manager.lucene_index.class', $config['lucene']['class']);
     }
 }
