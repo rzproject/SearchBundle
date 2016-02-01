@@ -155,20 +155,29 @@ class LuceneIndexCommand extends ContainerAwareCommand
             foreach ($indexFields as $field) {
                 $value = null;
                 $settings = $configManager->getIndexFieldSettings($entity_id, $field);
+				$type = $settings['type'];
                 $config['fields'] = isset($settings['fields']) ? $settings['fields'] : null;
                 $config['separator'] = isset($config['separator']) ? $config['separator'] : ' ';
                 $value = $configManager->getFieldValue($entity_id, $entity, $field, $config);
-
+				
+				if($type=='text'){
+					$funcName = Field::text($field, $value);
+				}elseif($type=='unStored'){
+					$funcName = Field::unStored($field, $value);
+				}
+				
                 try {
-                    if (is_array($value) && count($value)>0) {
-                        foreach($value as $val) {
-                            $doc->addField(Field::$settings['type']($field, $val));
-                            $searchContent .= $val;
-                        }
-                    } else {
-                        $doc->addField(Field::$settings['type']($field, $value));
-                        $searchContent .= $value;
-                    }
+					
+					if (is_array($value) && count($value)>0) {
+						foreach($value as $val) {
+							$doc->addField($funcName);
+							$searchContent .= $val;
+						}
+					} else {						
+						$doc->addField($funcName);
+						$searchContent .= $value;
+					}
+					
                 } catch (\Exception $e) {
                     throw $e;
                 }

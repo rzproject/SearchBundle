@@ -91,11 +91,26 @@ class LuceneIndexManager extends IndexManager
                     try {
                         if (is_array($value)) {
                             foreach ($value as $val) {
-                                $doc->addField(Field::$settings['type']($field, $val));
+								
+								$type = $settings['type'];
+								if($type=='text'){
+									$funcName = Field::text($field, $value);
+								}elseif($type=='unStored'){
+									$funcName = Field::unStored($field, $value);
+								}
+							
+                                $doc->addField($funcName);
                                 $searchContent .= $val;
                             }
                         } else {
-                            $doc->addField(Field::$settings['type']($field, $value));
+							$type = $settings['type'];
+							if($type=='text'){
+								$funcName = Field::text($field, $value);
+							}elseif($type=='unStored'){
+								$funcName = Field::unStored($field, $value);
+							}
+				
+                            $doc->addField($funcName);
                             $searchContent .= $value;
                         }
                     } catch (\Exception $e) {
