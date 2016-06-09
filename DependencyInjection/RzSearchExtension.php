@@ -147,18 +147,6 @@ class RzSearchExtension extends Extension
             }
         }
 
-
-
-        //Zend Lucene
-        $config_zend_lucene = $config['engine']['zend_lucene'];
-
-        $container->setParameter('rz_search.engine.zend_lucene.enabled', $config_zend_lucene['enabled']);
-
-        if (($config_zend_lucene['enabled'])) {
-            $loader->load('zend_lucene.xml');
-            $this->zendLuceneSettings($config_zend_lucene['settings'], $container, $config['configs']);
-        }
-
         $loader->load('search.xml');
         $loader->load('twig.xml');
         $loader->load('block.xml');
@@ -169,23 +157,6 @@ class RzSearchExtension extends Extension
         $this->configureSettings($config['settings'], $container);
         $this->configureFieldProcessors($config['settings']['default_processors'], $container);
         $this->configureIndexManager($config['index_manager'], $container);
-    }
-
-    /**
-     * Loads indexees configuration
-     *
-     * @param array $config The configuration.
-     * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container The container.
-     * @param array $settings
-     */
-    protected function zendLuceneSettings(array $config, ContainerBuilder $container, $settings = array())
-    {
-        if (empty($config)) {
-            return;
-        }
-        $container
-            ->getDefinition('rz_search.zend_lucene')
-            ->addMethodCall('setIndexes', array($config, $settings));
     }
 
     /**
@@ -251,6 +222,5 @@ class RzSearchExtension extends Extension
 
     public function configureIndexManager($config, ContainerBuilder $container) {
         $container->setParameter('rz_search.manager.solr_index.class', $config['solr']['class']);
-        $container->setParameter('rz_search.manager.lucene_index.class', $config['lucene']['class']);
     }
 }

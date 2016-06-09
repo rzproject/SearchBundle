@@ -59,20 +59,6 @@ class SearchController extends Controller
             $template = $configManager->getSearchTemplate($type, 'solr') ?:'RzSearchBundle::solr_results.html.twig';
             $response = $this->render($template, array('pager'=>$pager, 'type'=>$type));
 
-        } elseif ($this->container->getParameter('rz_search.engine.zend_lucene.enabled')) {
-            $client = $this->container->get('rz_search.zend_lucene')->getIndex($type);
-            $result =$client->find($search);
-            if ($result) {
-                $adapter = new ArrayAdapter($result);
-                $pager = new Pagerfanta($adapter);
-                $pager->setMaxPerPage($this->container->getParameter('rz_search.settings.search.pagination_per_page') ?: 5);
-                $page = $request->query->get('page') ? $request->query->get('page') : 1;
-                $pager->setCurrentPage($page, false, true);
-                $template = $configManager->getSearchTemplate($type, 'lucene') ?:'RzSearchBundle::lucene_results.html.twig';
-                $response = $this->render($template, array('pager'=>$pager, 'type'=>$type));
-            } else {
-                $response = $this->render($configManager->getNoResultTemplate($type) ?: 'RzSearchBundle::no_results.html.twig');
-            }
         }
 
         return $response;

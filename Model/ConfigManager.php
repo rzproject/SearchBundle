@@ -184,7 +184,7 @@ class ConfigManager implements ConfigManagerInterface
 
 			/*
 			 Handle this Lucene index mapping configuration:
-			 
+
 			 field_map_settings:
 				 postHasCategory:
 					 fields :
@@ -193,7 +193,7 @@ class ConfigManager implements ConfigManagerInterface
 					 separator: ~
 					 filter : ~
 					 type : unStored
-						 
+
 			*/
 
             $temp = null;
@@ -225,7 +225,7 @@ class ConfigManager implements ConfigManagerInterface
                         $temp[] =  $child->__toString();
                     }
                 }
-			}			
+			}
 			return $temp ? implode('~', $temp) : null;
         } elseif ($value instanceof \DateTime) {
             return $value->format('Y-m-d H:i:s');
@@ -337,12 +337,12 @@ class ConfigManager implements ConfigManagerInterface
         return;
     }
 
-    public function getResultTemplate($model_id, $type = 'lucene')
+    public function getResultTemplate($model_id, $type = 'solr')
     {
         return isset($this->configs[$model_id]['template']['result'][$type]) ? $this->configs[$model_id]['template']['result'][$type] : null;
     }
 
-    public function getSearchTemplate($model_id, $type = 'lucene')
+    public function getSearchTemplate($model_id, $type = 'solr')
     {
         return isset($this->configs[$model_id]['template']['search'][$type]) ? $this->configs[$model_id]['template']['search'][$type] : null;
     }

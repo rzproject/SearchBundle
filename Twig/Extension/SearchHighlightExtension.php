@@ -37,7 +37,6 @@ class SearchHighlightExtension extends \Twig_Extension
     {
         return array(
             new \Twig_SimpleFunction('rz_search_render_solr_result', array($this, 'renderSolr')),
-            new \Twig_SimpleFunction('rz_search_render_lucene_result', array($this, 'renderLucene')),
         );
     }
 
@@ -64,12 +63,6 @@ class SearchHighlightExtension extends \Twig_Extension
         $template = $this->configManager->getResultTemplate($id, 'solr') ?: 'RzSearchBundle:Search:news_solr_results.html.twig';
         $route = $this->configManager->getFieldRoute($id);
         return $this->environment->render($template, array('result'=>$result, 'highlighting'=>$highlight, 'route'=>$route));
-    }
-
-    public function renderLucene($id, $result, $highlight = null) {
-        $template = $this->configManager->getResultTemplate($id, 'lucene') ?: 'RzSearchBundle:Search:news_lucene_results.html.twig';
-        $route = $this->configManager->getFieldRoute($id);
-        return $this->environment->render($template, array('result'=>$result, 'route'=>$route));
     }
 
     /**

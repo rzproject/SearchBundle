@@ -14,10 +14,6 @@ namespace Rz\SearchBundle\Listener;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Rz\SearchBundle\Model\ConfigManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use ZendSearch\Lucene\Document;
-use ZendSearch\Lucene\Document\Field;
-use ZendSearch\Lucene\Index\Term;
-use ZendSearch\Lucene\Search\Query\Term as QueryTerm;
 use Rz\SearchBundle\Listener\SearchIndexListenerInterface;
 use Sonata\NewsBundle\Model\PostInterface;
 
@@ -46,10 +42,6 @@ abstract class AbstractSearchIndexListener implements SearchIndexListenerInterfa
     protected function getIndexManager() {
         if ($this->container->getParameter('rz_search.engine.solr.enabled')) {
             return  $this->container->get('rz_search.manager.solr_index');
-        }
-
-        if ($this->container->getParameter('rz_search.engine.zend_lucene.enabled')) {
-            return  $this->container->get('rz_search.manager.lucene_index');
         }
 
         return null;

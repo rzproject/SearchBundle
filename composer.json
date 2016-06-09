@@ -14,11 +14,10 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "symfony/framework-bundle": "~2.4",
-        "rmzamora/solarium": "3.3.0.*",
+        "symfony/framework-bundle": "~2.3",
+        "rmzamora/solarium": "3.3.*",
         "white-october/pagerfanta-bundle": "~1.0",
-        "symfony/filesystem": "~2.1",
-        "rmzamora/zendsearch": "dev-master"
+        "symfony/filesystem": "~2.3"
     },
     "autoload": {
         "psr-4": { "Rz\\SearchBundle\\": "" }
