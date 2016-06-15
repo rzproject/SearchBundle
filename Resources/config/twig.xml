@@ -10,8 +10,12 @@
     <services>
         <service id="rz.search.twig.extension" class="%rz_search.twig.form_extension.class%">
             <tag name="twig.extension" />
-            <argument type="service" id="rz_search.config_manager" />
+            <argument type="service" id="rz_search.manager.config" />
             <argument type="service" id="router" />
+
+            <call method="setDefaultTemplates">
+                <argument>%rz_search.settings.search.variables.templates%</argument>
+            </call>
         </service>
     </services>
 </container>

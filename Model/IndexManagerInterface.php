@@ -13,15 +13,17 @@ namespace Rz\SearchBundle\Model;
 
 interface IndexManagerInterface
 {
-    public function isFilterable($entity, $indexFilters);
+    public function getContainer();
 
-    public function processCollectionMapping($data, $fields, $filters);
+    public function setContainer($container);
 
-    public function processMapping($item, $fields, $filters);
+    public function getConfigManager();
 
-    public function fieldIsFilterable($item, $filters);
+    public function getModelProcessor($configKey);
 
-    public function processIndexData($type, $entity, $entityId, $isIndex = true);
+    public function getSearchClient($entityId);
 
-    public function indexData($type, $indexObject, $entity, $entity_id, $isIndex = true);
+    public function processIndexData($processor, $searchClient, $entity, $configKey);
+
+    public function indexData($processor, $indexObject, $entity, $configKey);
 }

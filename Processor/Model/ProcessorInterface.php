@@ -9,13 +9,17 @@
  * file that was distributed with this source code.
  */
 
-namespace Rz\SearchBundle\FieldProcessor;
+namespace Rz\SearchBundle\Processor\Model;
 
 use  Rz\SearchBundle\Model\ConfigManagerInterface;
 
-interface FieldProcessorInterface
+interface ProcessorInterface
 {
-    public function processFieldIndexValue($entityId, $object, $field, $options = array());
+    public function process($configKey, $entity, $options=[]);
+
+    public function fetchData($criteria = []);
+
+    public function fetchAllData($criteria = []);
 
     public function setConfigManager(ConfigManagerInterface $configManager);
 }

@@ -18,6 +18,7 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
+use Rz\SearchBundle\Exception\ConfigManagerException;
 
 /**
  * This is the class that loads and manages your bundle configuration
@@ -70,6 +71,7 @@ class RzSearchExtension extends Extension
 
             $clients = array();
             foreach ($config_solr['clients'] as $name => $clientOptions) {
+
                 $clientName = sprintf('solarium.client.%s', $name);
 
                 if (isset($clientOptions['client_class'])) {
@@ -151,11 +153,9 @@ class RzSearchExtension extends Extension
         $loader->load('twig.xml');
         $loader->load('block.xml');
         $loader->load('pagerfanta.xml');
-        $loader->load('default_processors.xml');
         $this->registerSearchSettings($config, $container);
         $this->configureBlocks($config['blocks'], $container);
         $this->configureSettings($config['settings'], $container);
-        $this->configureFieldProcessors($config['settings']['default_processors'], $container);
         $this->configureIndexManager($config['index_manager'], $container);
     }
 
@@ -165,14 +165,15 @@ class RzSearchExtension extends Extension
      */
     protected function registerSearchSettings(array $config, ContainerBuilder $container)
     {
-        if (!empty($config['configs'])) {
-            $definition = $container->getDefinition('rz_search.config_manager');
-            foreach ($config['configs'] as $name => $configuration) {
-                if ($configuration['model_class']) {
-                    //$name = preg_replace('/\\\\/', '.', strtolower($configuration['model_class']));
-                    $definition->addMethodCall('setConfig', array($name, $configuration));
-                    $definition->addMethodCall('setIndex', array($name, $configuration['model_identifier']));
-                }
+        if (empty($config['configs'])) {
+            throw ConfigManagerException::error('At least 1 configuration should be present under configs.');
+        }
+
+        $definition = $container->getDefinition('rz_search.manager.config');
+        foreach ($config['configs'] as $name => $configuration) {
+            if ($configuration['model']['processor'] && $configuration['model']['identifier']) {
+                $definition->addMethodCall('setConfig', array($name, $configuration));
+                $definition->addMethodCall('setIndex', array($name, $configuration['model']['identifier']));
             }
         }
     }
@@ -193,7 +194,7 @@ class RzSearchExtension extends Extension
         foreach ($temp as $template) {
             $templates[$template['path']] = $template['name'];
         }
-        $container->setParameter('rz_search.block.search.templates', $templates);
+        $container->setParameter('rz_search.block.search.templates.default', $templates);
 
     }
 
@@ -205,22 +206,18 @@ class RzSearchExtension extends Extension
      */
     public function configureSettings($config, ContainerBuilder $container)
     {
-        $container->setParameter('rz_search.settings.search.pagination_per_page', $config['search']['pagination_per_page']);
-    }
+        $container->setParameter('rz_search.slugify_service',                                   $config['slugify_service']);
+        $container->setParameter('rz_search.settings.search.pagination.per_page',               $config['search']['pagination']['per_page']);
+        $container->setParameter('rz_search.settings.search.variables.search_query',            $config['search']['variables']['search_query']);
+        $container->setParameter('rz_search.settings.search.variables.templates',               $config['search']['templates']);
+        $container->setParameter('rz_search.settings.search.variables.default_identifier',      $config['search']['variables']['default_identifier']);
 
-    /**
-     * @param array                                                   $config
-     * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container
-     *
-     * @return void
-     */
-    public function configureFieldProcessors($config, ContainerBuilder $container)
-    {
-        $container->setParameter('rz_search.field_processor.date.class', $config['date_processor']['class']);
-        $container->setParameter('rz_search.field_processor.date.date_format', $config['date_processor']['date_format']);
+        $container->setParameter('rz_search.settings.search.controller.search',                 $config['search']['controller']['search']);
+        $container->setParameter('rz_search.settings.search.controller.ajax',                   $config['search']['controller']['ajax']);
+
     }
 
     public function configureIndexManager($config, ContainerBuilder $container) {
-        $container->setParameter('rz_search.manager.solr_index.class', $config['solr']['class']);
+        $container->setParameter('rz_search.manager.solr.index.class', $config['solr']['class']);
     }
 }

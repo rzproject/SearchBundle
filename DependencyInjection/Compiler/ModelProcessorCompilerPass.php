@@ -15,13 +15,13 @@ use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
-class FieldProcessorCompilerPass implements CompilerPassInterface
+class ModelProcessorCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container)
     {
-        foreach ($container->findTaggedServiceIds('rz_search.field_processor') as $id => $attributes) {
+        foreach ($container->findTaggedServiceIds('rz_search.processor.model') as $id => $attributes) {
             $definition = $container->getDefinition($id);
-            $definition->addMethodCall('setConfigManager', array(new Reference('rz_search.config_manager')));
+            $definition->addMethodCall('setConfigManager', array(new Reference('rz_search.manager.config')));
         }
     }
 }

@@ -13,15 +13,13 @@ namespace Rz\SearchBundle\Model;
 
 use Rz\SearchBundle\FieldProcessor\FieldProcessorInterface;
 
-class SolrIndexManager extends IndexManager
+class SolrIndexManager extends AbstractIndexManager
 {
-    public function processIndexData($type, $entity, $entityId, $isIndex = true) {
-
-        $searchClient = $this->getSearchClient($entityId);
-
+    public function processIndexData($processor, $searchClient, $entity, $configKey) {
         try {
             $indexObject = $searchClient->createUpdate();
-            $document = $this->indexData($type, $indexObject, $entity, $entityId, $isIndex);
+            $document = $this->indexData($processor, $indexObject, $entity, $configKey);
+
             // add the documents and a commit command to the update query
             $indexObject->addDocuments(array($document));
             $indexObject->addCommit();
@@ -32,44 +30,16 @@ class SolrIndexManager extends IndexManager
         }
     }
 
-    public function indexData($type, $indexObject, $entity, $entityId, $isIndex = true) {
+    public function indexData($processor, $indexObject, $entity, $configKey) {
 
         $doc = $indexObject->createDocument();
-        $doc->setField('id', $this->getConfigManager()->getModelIdentifier($entityId).'_'.$entity->getId());
-        $doc->setField('model_id', $entity->getId());
-        $doc->setField('index_type', $entityId);
-        // generate route
-        $routeGenerator = $this->getRouteGenerator($entityId);
-        $doc->setField('url', $routeGenerator->generate($entity));
 
-        $indexFields = $this->getConfigManager()->getIndexFields($entityId);
+        $values = $processor->process($configKey, $entity);
+        $fieldMappings = $this->getConfigManager()->getFieldMapping($configKey);
 
-        foreach ($indexFields as $field) {
-            $value = null;
-            //USE FIELD PROCESSOR
-            $processorService = $this->getConfigManager()->getIndexFieldSettingsProcessor($entityId, $field);
-
-            if($processorService) {
-                if($this->getContainer()->has($processorService)) {
-                    $processor = $this->getContainer()->get($processorService);
-                    if($processor instanceof FieldProcessorInterface) {
-                        $processorOptions = $this->getConfigManager()->getIndexFieldSettingsProcessorOptions($entityId, $field) ?: array();
-                        $value = $processor->processFieldIndexValue($entityId, $entity, $field, $processorOptions);
-                    }
-                }
-            } else {
-                $value = $this->getConfigManager()->getFieldValue($entityId, $entity, $field);
-            }
-
+        foreach($fieldMappings as $key=>$field) {
             try {
-                //array condition will be depricated on 1.2
-                if (is_array($value)) {
-                    foreach($value as $val) {
-                        $doc->addField($field, $val);
-                    }
-                } else {
-                    $doc->setField($field, $value);
-                }
+                $doc->setField($key, $values[$key]);
             } catch (\Exception $e) {
                 throw $e;
             }

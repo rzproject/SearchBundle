@@ -4,7 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
 
-    <route id="rz_search_default" path="/">
-        <default key="_controller">%rz_search.settings.search.controller.search%</default>
+    <route id="rz_search_helper_fetch_data" path="/search/fetch-data">
+        <default key="_controller">%rz_search.settings.search.controller.ajax%</default>
     </route>
 </routes>

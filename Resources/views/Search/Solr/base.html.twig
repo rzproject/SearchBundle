@@ -1,0 +1,18 @@
+{% block search_block %}
+<div class="rz-search-block-search-container">
+	<form action="{{ path("rz_search_default") }}" class="form-search" method="POST">
+		<input type="hidden" class="input-medium search-query" name="{{ form.children['type'].vars.full_name }}" value="{{ form.children['type'].vars.value }}">
+		{{ form_row(form._token) }}
+		<div class="input-group">
+			<input type="text" class="form-control" name="{{ form.children[query_var].vars.full_name }}" value="{{ form.children[query_var].vars.value }}">
+            <span class="input-group-btn">
+			  <button type="submit" class="btn btn-success btn-flat">{{ form.children['search'].vars.label|trans({}, 'RzSearchBundle') }}</button>
+            </span>
+		</div>
+
+	</form>
+</div>
+{% endblock %}
+{% block search_list_block %}
+	{# your result here #}
+{% endblock %}

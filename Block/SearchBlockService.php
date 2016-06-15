@@ -14,6 +14,7 @@ namespace Rz\SearchBundle\Block;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Admin\Admin;
 use Sonata\CoreBundle\Validator\ErrorElement;
+use Sonata\CoreBundle\Model\Metadata;
 
 use Sonata\BlockBundle\Block\BlockContextInterface;
 use Sonata\BlockBundle\Model\BlockInterface;
@@ -24,8 +25,12 @@ use Sonata\MediaBundle\Model\MediaInterface;
 
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Templating\EngineInterface;
-use Symfony\Component\OptionsResolver\OptionsResolverInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 class SearchBlockService extends BaseBlockService
 {
@@ -33,6 +38,7 @@ class SearchBlockService extends BaseBlockService
     protected $templates;
     protected $securityToken;
     protected $securityChecker;
+    protected $slugify;
 
     /**
      * @param string $name
@@ -49,21 +55,14 @@ class SearchBlockService extends BaseBlockService
     /**
      * {@inheritdoc}
      */
-    public function getName()
-    {
-        return 'Search Bar';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setDefaultSettings(OptionsResolverInterface $resolver)
+    public function configureSettings(OptionsResolver $resolver)
     {
         $resolver->setDefaults(array(
-                   'filter'   => null,
-                   'title'   => false,
-                   'template' => 'RzSearchBundle:Block:block_search.html.twig'
-               ));
+            'filter'   => null,
+            'title'    => null,
+            'help'     => null,
+            'template' => 'RzSearchBundle:Block:Search\default.html.twig'
+        ));
     }
 
     /**
@@ -71,14 +70,15 @@ class SearchBlockService extends BaseBlockService
      */
     public function buildEditForm(FormMapper $formMapper, BlockInterface $block)
     {
-       $configs = $this->container->get('rz_search.config_manager')->getConfigNames();
+        $configs = $this->container->get('rz_search.manager.config')->getConfigNames();
+        $trans = $this->container->get('translator');
 
         $formMapper->add('settings', 'sonata_type_immutable_array', array(
                        'keys' => array(
-                           array('title', 'text', array('required' => false, 'label'=> 'Title')),
+                           array('title', 'text', array('required' => false, 'label'=> $trans->trans('form.search_block.title', array(),  $this->getBlockMetadata()->getDomain()))),
+                           array('help',  'text', array('required' => false, 'label'=> $trans->trans('form.search_block.help', array(),  $this->getBlockMetadata()->getDomain()))),
                            array('filter', 'choice', array('choices' => $configs,
-                                                           'selectpicker_dropup' => true,
-                                                           'label'=> 'Filter')),
+                                                           'label'=> $trans->trans('form.search_block.filter', array(),  $this->getBlockMetadata()->getDomain()))),
                            array('template', 'choice', array('choices' => $this->templates)),
                        )
                    ));
@@ -89,19 +89,56 @@ class SearchBlockService extends BaseBlockService
      */
     public function execute(BlockContextInterface $blockContext, Response $response = null)
     {
-        $query = $this->container->get('request')->query->get('rz_q');
+        $queryVar = $this->getSlugify()->slugify($this->container->getParameter('rz_search.settings.search.variables.search_query'), '_');
+        $query = $this->container->get('request')->query->get($queryVar) ?: null;
+
+        $form = $this->createFormBuilder()
+            ->add($this->getQueryVar(),  TextType::class, array('data'=>$query))
+            ->add('type',   HiddenType::class, array('data'=>$this->getDefaultIdentifier()))
+            ->add('search', SubmitType::class, array('label' => 'btn.search'))
+            ->getForm();
+
+
+        $csrfProvider = $this->container->get('form.csrf_provider');
 
         $parameters =array(
-            'rz_q' => $query,
-            'block'     => $blockContext->getBlock(),
-            'settings'  => $blockContext->getSettings()
+            'form'           => $form->createView(),
+            'query_var'      => $queryVar,
+            'block_context'  => $blockContext,
+            'block'          => $blockContext->getBlock(),
         );
 
+        $template = $blockContext->getBlock()->getSetting('template');
+
         if ($this->securityChecker->isGranted('IS_AUTHENTICATED_FULLY')) {
-            return $this->renderPrivateResponse($blockContext->getTemplate(), $parameters, $response);
+            return $this->renderPrivateResponse($template, $parameters, $response);
         }
 
-        return $this->renderResponse($blockContext->getTemplate(), $parameters, $response);
+        return $this->renderResponse($template, $parameters, $response);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getBlockMetadata($code = null)
+    {
+        return new Metadata($this->getName(), (!is_null($code) ? $code : $this->getName()), false, 'RzSearchBundle', array(
+            'class' => 'fa fa-fw fa-search',
+        ));
+    }
+
+    /**
+     * Creates and returns a form builder instance.
+     *
+     * @param mixed $data    The initial data for the form
+     * @param array $options Options for the form
+     *
+     * @return FormBuilder
+     */
+    public function createFormBuilder($data = null, array $options = array())
+    {
+        $type = 'Symfony\Component\Form\Extension\Core\Type\FormType';
+        return $this->container->get('form.factory')->createBuilder($type, $data, $options);
     }
 
 
@@ -113,6 +150,14 @@ class SearchBlockService extends BaseBlockService
      */
     public function validateBlock(ErrorElement $errorElement, BlockInterface $block){
 
+    }
+
+    public function getDefaultIdentifier() {
+        return  $this->container->getParameter('rz_search.settings.search.variables.default_identifier');
+    }
+
+    public function getQueryVar() {
+        return $this->slugify->slugify($this->container->getParameter('rz_search.settings.search.variables.search_query'), '_');
     }
 
     /**
@@ -161,5 +206,21 @@ class SearchBlockService extends BaseBlockService
     public function setSecurityChecker($securityChecker)
     {
         $this->securityChecker = $securityChecker;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSlugify()
+    {
+        return $this->slugify;
+    }
+
+    /**
+     * @param mixed $slugify
+     */
+    public function setSlugify($slugify)
+    {
+        $this->slugify = $slugify;
     }
 }

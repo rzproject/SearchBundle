@@ -1,0 +1,35 @@
+{% extends sonata_block.templates.block_base %}
+{% block block %}
+    {% set settings = block.settings %}
+    {% if settings.title %}
+        <h3>{{ settings.title }}</h3>
+    {% endif %}
+    <div class="rz-search-block-search-container">
+	    <form action="{{ path("rz_search_default") }}" class="form-search" method="POST">
+		    <input type="hidden" class="input-medium search-query" name="{{ form.children['type'].vars.full_name }}" value="{{ form.children['type'].vars.value }}">
+		    {{ form_row(form._token) }}
+		    <div class="input-group">
+			    <input type="text" class="form-control" name="{{ form.children[query_var].vars.full_name }}" value="{{ form.children[query_var].vars.value }}">
+            <span class="input-group-btn">
+			  <button type="submit" class="btn btn-success btn-flat">{{ form.children['search'].vars.label|trans({}, 'RzSearchBundle') }}</button>
+            </span>
+		    </div>
+		    {% if settings.help %}
+		    <p class="margin help-block"><em>{{ settings.help }}</em></p>
+		    {% endif %}
+	    </form>
+        {#<form action="{{ path("rz_search_default") }}" class="form-search" method="GET">#}
+	        {#<input type="hidden" class="input-medium search-query" name="type" value="{{ settings.filter }}">#}
+	        {#<input type="hidden" name="token" value="{{ csrfTokens.search }}"/>#}
+	        {#<div class="input-group">#}
+		        {#<input type="text" class="form-control" name="{{ query_var }}" value="{{ query }}">#}
+                {#<span class="input-group-btn">#}
+				  {#<button type="submit" class="btn btn-success btn-flat">{{ 'btn.search'|trans({}, 'RzSearchBundle') }}</button>#}
+                {#</span>#}
+	        {#</div>#}
+	        {#{% if settings.help %}#}
+	        {#<p class="margin help-block"><em>{{ settings.help }}</em></p>#}
+	        {#{% endif %}#}
+        {#</form>#}
+    </div>
+{% endblock %}

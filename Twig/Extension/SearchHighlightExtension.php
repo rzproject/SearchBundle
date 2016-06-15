@@ -13,6 +13,7 @@ class SearchHighlightExtension extends \Twig_Extension
     protected $environment;
     protected $configManager;
     protected $router;
+    protected $defaultTemplates;
 
     /**
      * @param \Rz\SearchBundle\Model\ConfigManagerInterface $configManager
@@ -60,9 +61,8 @@ class SearchHighlightExtension extends \Twig_Extension
     }
 
     public function renderSolr($id, $result, $highlight) {
-        $template = $this->configManager->getResultTemplate($id, 'solr') ?: 'RzSearchBundle:Search:news_solr_results.html.twig';
-        $route = $this->configManager->getFieldRoute($id);
-        return $this->environment->render($template, array('result'=>$result, 'highlighting'=>$highlight, 'route'=>$route));
+        $template = $this->configManager->getResultItemTemplate($id, 'solr') ?: $this->getTemplate('result_item');
+        return $this->environment->render($template, array('result'=>$result, 'highlighting'=>$highlight));
     }
 
     /**
@@ -95,5 +95,37 @@ class SearchHighlightExtension extends \Twig_Extension
             }
         }
         return implode("\n", $text);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDefaultTemplates()
+    {
+        return $this->defaultTemplates;
+    }
+
+    /**
+     * @param mixed $defaultTemplates
+     */
+    public function setDefaultTemplates($defaultTemplates)
+    {
+        $this->defaultTemplates = $defaultTemplates;
+    }
+
+    protected function getTemplates($engine = 'solr') {
+        $templates = $this->getDefaultTemplates();
+        if (isset($templates[$engine])) {
+            return $templates[$engine];
+        }
+        return null;
+    }
+
+    protected function getTemplate($key, $engine='solr') {
+        $templates = $this->getTemplates($engine);
+        if(!$templates) {
+            return null;
+        }
+        return $templates[$key];
     }
 }

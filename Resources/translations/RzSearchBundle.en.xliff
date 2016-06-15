@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file source-language="en" datatype="plaintext" original="file.ext">
+        <body>
+            <trans-unit id="rz.search.block.search">
+                <source>rz.search.block.search</source>
+                <target>Search Block</target>
+            </trans-unit>
+            <trans-unit id="form.search_block.filter">
+                <source>form.search_block.filter</source>
+                <target>Filter Type</target>
+            </trans-unit>
+            <trans-unit id="form.search_block.title">
+                <source>form.search_block.title</source>
+                <target>Label</target>
+            </trans-unit>
+            <trans-unit id="form.search_block.help">
+                <source>form.search_block.help</source>
+                <target>Search Box Help Description</target>
+            </trans-unit>
+            <trans-unit id="rz_search.controller.error.invalid_token">
+                <source>rz_search.controller.error.invalid_token</source>
+                <target>Page not found! Invalid search token!</target>
+            </trans-unit>
+            <trans-unit id="rz_search.controller.error.invalid_search_cleint">
+                <source>rz_search.controller.error.invalid_search_cleint</source>
+                <target>Search Engine disabled!</target>
+            </trans-unit>
+            <trans-unit id="rz_search.controller.error.invalid_type">
+                <source>rz_search.controller.error.invalid_type</source>
+                <target>Page not found! Invalid search type!</target>
+            </trans-unit>
+            <trans-unit id="rz_search.controller.error.invalid_request_type">
+                <source>rz_search.controller.error.invalid_request_type</source>
+                <target>Expected a XmlHttpRequest request header!</target>
+            </trans-unit>
+            <trans-unit id="rz_search.controller.error.no_search_query">
+                <source>rz_search.controller.error.no_search_query</source>
+                <target>Expected a search query!</target>
+            </trans-unit>
+            <trans-unit id="rz_search.controller.error.no_search_result">
+                <source>rz_search.controller.error.no_search_result</source>
+                <target>Expected a search result!</target>
+            </trans-unit>
+            <trans-unit id="btn.search">
+                <source>btn.search</source>
+                <target>Search</target>
+            </trans-unit>
+            <trans-unit id="btn.load_more">
+                <source>btn.load_more</source>
+                <target>Load More</target>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>

@@ -48,4 +48,9 @@ class ConfigManagerException extends \Exception
     {
         return new static(sprintf('The RzSearchBundle options "%s" does not exist.', $name));
     }
+
+    public static function error($msg)
+    {
+        return new static(sprintf('%s', $msg));
+    }
 }

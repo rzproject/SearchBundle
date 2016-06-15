@@ -1,0 +1,8 @@
+{% set results = pager.getCurrentPageResults %}
+{% set highlight = results.getHighlighting %}
+{% for result in results %}
+	{% set content= rz_search_render_solr_result(type,result,highlight) %}
+	{{  content | raw }}
+{% else %}
+	{{ 'no_post_found'|trans({}, 'SonataNewsBundle') }}
+{% endfor %}

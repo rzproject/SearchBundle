@@ -1,0 +1,31 @@
+{% extends 'RzSearchBundle:Search:Solr/base.html.twig' %}
+
+{% block search_list_block %}
+{% if pager is defined %}
+	<h3>{{ pager.getNbResults }} Search Results</h3>
+
+	{% set results = pager.getCurrentPageResults %}
+	{% set highlight = results.getHighlighting %}
+	{% if type is defined %}
+		<div class="sonata-blog-post-list">
+		{% for result in results %}
+			{% set content= rz_search_render_solr_result(type,result,highlight) %}
+			{{  content | raw }}
+		{% else %}
+			{{ 'no_post_found'|trans({}, 'SonataNewsBundle') }}
+		{% endfor %}
+		</div>
+		{% if pager.haveToPaginate and pager.hasNextPage%}
+		{% set query = {(query_var):(search)} %}
+		<div class="center-block load-more-container">
+			<button type="button"
+			        class="btn btn-success btn-flat btn-block load-more-btn"
+				    data-href="{{ url('rz_search_helper_fetch_data', {type: type, page: pager.getNextPage}|merge(query) ) }}"
+			        data-target-class="sonata-blog-post-list">{{ 'btn.load_more'|trans({}, 'RzSearchBundle') }}</button>
+		</div>
+		{% endif %}
+	{% else %}
+		<h1>{{ type }} is not defined index!</h1>
+	{% endif %}
+{% endif %}
+{% endblock %}
