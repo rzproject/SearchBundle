@@ -11,7 +11,7 @@
 
 namespace Rz\SearchBundle\Processor\Model;
 
-use  Rz\SearchBundle\Model\ConfigManagerInterface;
+use Rz\SearchBundle\Model\ConfigManagerInterface;
 
 interface ProcessorInterface
 {

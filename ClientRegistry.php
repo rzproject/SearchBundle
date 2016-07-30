@@ -75,5 +75,4 @@ class ClientRegistry
     {
         return array_keys($this->clients);
     }
-
 }

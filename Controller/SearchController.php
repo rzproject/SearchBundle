@@ -2,7 +2,6 @@
 
 namespace Rz\SearchBundle\Controller;
 
-
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Pagerfanta\Adapter\SolariumAdapter;
@@ -39,19 +38,18 @@ class SearchController extends AbstractController
 
         $params = array('form' =>$form->createView(), 'query_var'=>$this->getQueryVar());
 
-        if($request->getRealMethod() === Request::METHOD_GET && $query) {
+        if ($request->getRealMethod() === Request::METHOD_GET && $query) {
             $type = $this->getDefaultIdentifier();
 
             $pager = $this->search($type, 1, $query);
 
             $template = $this->getConfigManager()->getResultTemplate($type) ?: $this->getDefaultTemplate('results');
-            $params = array_merge($params, array('pager'=>$pager,'search'=>$query,'type'=> $type));
+            $params = array_merge($params, array('pager'=>$pager, 'search'=>$query, 'type'=> $type));
             $response = $this->render($template, $params);
             return $response;
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
-
             $data = (object) $form->getData();
 
             $queryVar = $this->getQueryVar();
@@ -67,21 +65,20 @@ class SearchController extends AbstractController
             $pager = $this->search($type, 1, $searchString);
 
             $template = $this->getConfigManager()->getResultTemplate($type) ?: $this->getDefaultTemplate('results');
-            $params = array_merge($params, array('pager'=>$pager,'search'=>$searchString,'type'=> $type));
+            $params = array_merge($params, array('pager'=>$pager, 'search'=>$searchString, 'type'=> $type));
             $response = $this->render($template, $params);
             return $response;
-
         }
 
         $template = $this->getConfigManager()->getResultTemplate($this->getDefaultIdentifier()) ?: $this->getDefaultTemplate('results');
         return  $this->render($template, $params);
     }
 
-    protected function search($type, $page = 1, $searchString = null) {
-
+    protected function search($type, $page = 1, $searchString = null)
+    {
         $searchClient = $this->getSearchClient($type);
 
-        if(!$searchClient) {
+        if (!$searchClient) {
             throw $this->createNotFoundException($this->getTranslator()->trans('rz_search.controller.error.invalid_search_cleint', array(),  'RzSearchBundle'));
         }
 
@@ -97,7 +94,7 @@ class SearchController extends AbstractController
         $hl->setFields('title, description, url');
         $hl->setSimplePrefix('<span class="label label-success">');
         $hl->setSimplePostfix('</span>');
-        $query->setQuery(sprintf('text:%s',$searchString));
+        $query->setQuery(sprintf('text:%s', $searchString));
 
 
         $resultset = $searchClient->select($query);
@@ -109,6 +106,5 @@ class SearchController extends AbstractController
         $pager->setCurrentPage($page, false, true);
 
         return $pager;
-
     }
 }

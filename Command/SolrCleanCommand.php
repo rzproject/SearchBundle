@@ -10,10 +10,11 @@ use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 
 class SolrCleanCommand extends ContainerAwareCommand
 {
-    protected function configure() {
+    protected function configure()
+    {
         $this->setName('rz:solr:clean')
         ->setDescription('Clean/Re-initialize Apache Solr index.')
-        ->addOption('entity-id',null, InputOption::VALUE_REQUIRED, 'Entity id based on your RzSearchBundle config.');
+        ->addOption('entity-id', null, InputOption::VALUE_REQUIRED, 'Entity id based on your RzSearchBundle config.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -40,6 +41,5 @@ class SolrCleanCommand extends ContainerAwareCommand
         } else {
             $output->writeln('<rz-err>entity-id required!</rz-err>');
         }
-
     }
 }

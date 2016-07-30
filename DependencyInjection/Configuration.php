@@ -103,10 +103,10 @@ class Configuration implements ConfigurationInterface
                                     ->useAttributeAsKey('name')
                                     ->prototype('array')
                                         ->beforeNormalization()
-                                            ->ifTrue(function($v) {
+                                            ->ifTrue(function ($v) {
                                                 return isset($v['dsn']);
                                             })
-                                            ->then(function($v) {
+                                            ->then(function ($v) {
                                                 $parsed_dsn = parse_url($v['dsn']);
                                                 unset($v['dsn']);
                                                 if ($parsed_dsn) {
@@ -146,7 +146,7 @@ class Configuration implements ConfigurationInterface
                                             ->arrayNode('endpoints')
                                                 ->beforeNormalization()
                                                     ->ifString()
-                                                    ->then(function($v) { return preg_split('/\s*,\s*/', $v); })
+                                                    ->then(function ($v) { return preg_split('/\s*,\s*/', $v); })
                                                 ->end()
                                                 ->prototype('scalar')->end()
                                             ->end()

@@ -60,7 +60,8 @@ class SearchHighlightExtension extends \Twig_Extension
         return 'rz_search';
     }
 
-    public function renderSolr($id, $result, $highlight) {
+    public function renderSolr($id, $result, $highlight)
+    {
         $template = $this->configManager->getResultItemTemplate($id, 'solr') ?: $this->getTemplate('result_item');
         return $this->environment->render($template, array('result'=>$result, 'highlighting'=>$highlight));
     }
@@ -73,8 +74,8 @@ class SearchHighlightExtension extends \Twig_Extension
     public function renderHighlight($hightlight)
     {
         $text = array();
-        if($hightlight){
-            foreach($hightlight as $field => $highlight) {
+        if ($hightlight) {
+            foreach ($hightlight as $field => $highlight) {
                 $text[] = strip_tags(implode(' (...) ', $highlight), '<span>');
             }
         }
@@ -89,8 +90,8 @@ class SearchHighlightExtension extends \Twig_Extension
     public function renderHighlightItem($hightlight)
     {
         $text = array();
-        if($hightlight){
-            foreach($hightlight as $field => $highlight) {
+        if ($hightlight) {
+            foreach ($hightlight as $field => $highlight) {
                 $text[] = strip_tags(implode(' (...) ', $highlight), '<span>');
             }
         }
@@ -113,7 +114,8 @@ class SearchHighlightExtension extends \Twig_Extension
         $this->defaultTemplates = $defaultTemplates;
     }
 
-    protected function getTemplates($engine = 'solr') {
+    protected function getTemplates($engine = 'solr')
+    {
         $templates = $this->getDefaultTemplates();
         if (isset($templates[$engine])) {
             return $templates[$engine];
@@ -121,9 +123,10 @@ class SearchHighlightExtension extends \Twig_Extension
         return null;
     }
 
-    protected function getTemplate($key, $engine='solr') {
+    protected function getTemplate($key, $engine='solr')
+    {
         $templates = $this->getTemplates($engine);
-        if(!$templates) {
+        if (!$templates) {
             return null;
         }
         return $templates[$key];

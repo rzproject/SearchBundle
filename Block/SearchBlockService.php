@@ -15,19 +15,15 @@ use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Admin\Admin;
 use Sonata\CoreBundle\Validator\ErrorElement;
 use Sonata\CoreBundle\Model\Metadata;
-
 use Sonata\BlockBundle\Block\BlockContextInterface;
 use Sonata\BlockBundle\Model\BlockInterface;
 use Sonata\BlockBundle\Block\BaseBlockService;
-
 use Sonata\MediaBundle\Model\MediaManagerInterface;
 use Sonata\MediaBundle\Model\MediaInterface;
-
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Templating\EngineInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -148,15 +144,17 @@ class SearchBlockService extends BaseBlockService
      *
      * @return void
      */
-    public function validateBlock(ErrorElement $errorElement, BlockInterface $block){
-
+    public function validateBlock(ErrorElement $errorElement, BlockInterface $block)
+    {
     }
 
-    public function getDefaultIdentifier() {
+    public function getDefaultIdentifier()
+    {
         return  $this->container->getParameter('rz_search.settings.search.variables.default_identifier');
     }
 
-    public function getQueryVar() {
+    public function getQueryVar()
+    {
         return $this->slugify->slugify($this->container->getParameter('rz_search.settings.search.variables.search_query'), '_');
     }
 
