@@ -1,15 +1,15 @@
 <?php
 namespace Rz\SearchBundle\Command;
 
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Sensio\Bundle\GeneratorBundle\Command\Helper\QuestionHelper;
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Formatter\OutputFormatterStyle;
+use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Formatter\OutputFormatterStyle;
-use Symfony\Component\Console\Helper\ProgressBar;
-use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Question\Question;
 
 class SolrIndexCommand extends ContainerAwareCommand
@@ -49,8 +49,8 @@ class SolrIndexCommand extends ContainerAwareCommand
         $this->configKey = $configKey;
     }
 
-    protected function configure() {
-
+    protected function configure()
+    {
         $this->setName('rz:solr:index')
             ->setDescription('Index doctrine entity using Apache Solr.')
             ->setDefinition(
@@ -78,7 +78,7 @@ class SolrIndexCommand extends ContainerAwareCommand
         if ($entity) {
             $this->setConfigKey(preg_replace('/\//', '.', strtolower($entity)));
             $options = $this->getCLIOptions($entity);
-            foreach($options as $option) {
+            foreach ($options as $option) {
                 $opt = (strtoupper($option['is_required']) == 'REQUIRED') ? InputOption::VALUE_REQUIRED : InputOption::VALUE_OPTIONAL;
                 $this->getDefinition()->addOption(new InputOption($option['name'], null, $opt | InputOption::VALUE_IS_ARRAY, $option['description']));
             }
@@ -100,7 +100,7 @@ class SolrIndexCommand extends ContainerAwareCommand
         $entity =  $this->getConfigKey() ?: preg_replace('/\//', '.', strtolower($input->getArgument('entity')));
         if ($entity) {
             $options = $this->getCLIOptions($entity);
-            foreach($options as $option) {
+            foreach ($options as $option) {
                 $ans = $this->promptOption(
                     $input,
                     $output,
@@ -116,7 +116,7 @@ class SolrIndexCommand extends ContainerAwareCommand
     {
         $opt = [];
         $options = $this->getCLIOptions($this->configKey);
-        foreach($options as $option) {
+        foreach ($options as $option) {
             $opt[$option['name']] = $input->getOption($option['name']);
         }
 
@@ -166,7 +166,7 @@ class SolrIndexCommand extends ContainerAwareCommand
                 $progress->clear();
                 $progress->display();
                 $indexObject = $searchClient->createUpdate();
-                foreach($data as $model) {
+                foreach ($data as $model) {
                     if ($this->getConfigManager()->hasConfig($this->configKey)) {
                         try {
                             $doc[$batch_count] = $indexManager->indexData($modelProcessorService, $indexObject, $model, $this->configKey);
@@ -178,7 +178,7 @@ class SolrIndexCommand extends ContainerAwareCommand
                                 $indexObject->addCommit();
                                 // this executes the query and returns the result
                                 $result[] = $searchClient->update($indexObject);
-                                if($batch_count >= 10) {
+                                if ($batch_count >= 10) {
                                     $batch_count = 0;
                                     $doc = array();
                                 }
@@ -193,7 +193,7 @@ class SolrIndexCommand extends ContainerAwareCommand
                     $progress->advance();
                     sleep(.25);
                 }
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 throw $e;
             }
 
@@ -202,7 +202,6 @@ class SolrIndexCommand extends ContainerAwareCommand
             $output->writeln(sprintf('<info> Finish indexing %s data!</info>', $totalCount));
 
             $output->writeln(sprintf('<info>Finish indexing: <rz-msg>%s</rz-msg></info>', $this->configKey));
-
         } else {
             $output->writeln('<rz-err>Option entity required!</rz-err>');
         }
@@ -229,7 +228,6 @@ class SolrIndexCommand extends ContainerAwareCommand
      */
     private function getQuestionHelper()
     {
-
         $questionHelper = $this->getHelper('question');
 
         if (!$questionHelper instanceof QuestionHelper) {
@@ -239,7 +237,8 @@ class SolrIndexCommand extends ContainerAwareCommand
         return $questionHelper;
     }
 
-    protected function getCLIOptions($id) {
+    protected function getCLIOptions($id)
+    {
         $configManager = $this->getConfigManager() ?: $this->getContainer()->get('rz_search.manager.config');
         $options = $configManager->getCLIOptions($id) ?: [];
         return $options;
