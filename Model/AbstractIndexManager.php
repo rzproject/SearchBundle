@@ -10,6 +10,7 @@
  */
 
 namespace Rz\SearchBundle\Model;
+
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 abstract class AbstractIndexManager implements IndexManagerInterface
@@ -44,7 +45,8 @@ abstract class AbstractIndexManager implements IndexManagerInterface
         $this->container = $container;
     }
 
-    public function getConfigManager() {
+    public function getConfigManager()
+    {
         return $this->container->get('rz_search.manager.config');
     }
 
@@ -64,7 +66,11 @@ abstract class AbstractIndexManager implements IndexManagerInterface
         $this->client = $client;
     }
 
-    public function getModelProcessor($configKey) {}
+    public function getModelProcessor($configKey)
+    {
+    }
 
-    public function getSearchClient($entityId) {}
+    public function getSearchClient($entityId)
+    {
+    }
 }

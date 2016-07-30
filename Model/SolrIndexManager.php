@@ -15,7 +15,8 @@ use Rz\SearchBundle\FieldProcessor\FieldProcessorInterface;
 
 class SolrIndexManager extends AbstractIndexManager
 {
-    public function processIndexData($processor, $searchClient, $entity, $configKey) {
+    public function processIndexData($processor, $searchClient, $entity, $configKey)
+    {
         try {
             $indexObject = $searchClient->createUpdate();
             $document = $this->indexData($processor, $indexObject, $entity, $configKey);
@@ -25,19 +26,19 @@ class SolrIndexManager extends AbstractIndexManager
             $indexObject->addCommit();
             // this executes the query and returns the result
             return $searchClient->update($indexObject);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
 
-    public function indexData($processor, $indexObject, $entity, $configKey) {
-
+    public function indexData($processor, $indexObject, $entity, $configKey)
+    {
         $doc = $indexObject->createDocument();
 
         $values = $processor->process($configKey, $entity);
         $fieldMappings = $this->getConfigManager()->getFieldMapping($configKey);
 
-        foreach($fieldMappings as $key=>$field) {
+        foreach ($fieldMappings as $key=>$field) {
             try {
                 $doc->setField($key, $values[$key]);
             } catch (\Exception $e) {

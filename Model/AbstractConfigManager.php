@@ -71,12 +71,11 @@ class AbstractConfigManager implements ConfigManagerInterface
      */
     public function getConfigInConfigs($name, $config)
     {
-        if($this->hasConfigInConfigs($name, $config)) {
+        if ($this->hasConfigInConfigs($name, $config)) {
             return $config[$name];
         } else {
             return;
         }
-
     }
 
     /**

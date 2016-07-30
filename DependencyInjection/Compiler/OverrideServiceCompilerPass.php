@@ -9,7 +9,8 @@ use Symfony\Component\DependencyInjection\Definition;
 
 class OverrideServiceCompilerPass implements CompilerPassInterface
 {
-    public function process(ContainerBuilder $container) {
+    public function process(ContainerBuilder $container)
+    {
         #####################
         # override blocks
         #####################
@@ -22,7 +23,7 @@ class OverrideServiceCompilerPass implements CompilerPassInterface
         if (interface_exists('Sonata\PageBundle\Model\BlockInteractorInterface')) {
             $blocks = $container->getParameter('sonata_block.blocks');
             $blockService = 'rz.search.block.search';
-            if(isset($blocks[$blockService]) && isset($blocks[$blockService]['templates'])) {
+            if (isset($blocks[$blockService]) && isset($blocks[$blockService]['templates'])) {
                 $container->setParameter('rz_search.block.search.templates', $blocks[$blockService]['templates']);
             }
         }
@@ -34,7 +35,7 @@ class OverrideServiceCompilerPass implements CompilerPassInterface
             $templates[$item['template']] = $item['name'];
         }
 
-        if(!$templates) {
+        if (!$templates) {
             $templates = $container->getParameter('rz_search.block.search.templates.default');
         }
 

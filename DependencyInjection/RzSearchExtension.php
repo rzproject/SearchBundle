@@ -42,7 +42,6 @@ class RzSearchExtension extends Extension
         $container->setParameter('rz_search.engine.solr.enabled', $config_solr['enabled']);
 
         if (($config_solr['enabled'])) {
-
             $loader->load('registry.xml');
 
             if ($container->getParameter('kernel.debug') === true) {
@@ -71,7 +70,6 @@ class RzSearchExtension extends Extension
 
             $clients = array();
             foreach ($config_solr['clients'] as $name => $clientOptions) {
-
                 $clientName = sprintf('solarium.client.%s', $name);
 
                 if (isset($clientOptions['client_class'])) {
@@ -195,7 +193,6 @@ class RzSearchExtension extends Extension
             $templates[$template['path']] = $template['name'];
         }
         $container->setParameter('rz_search.block.search.templates.default', $templates);
-
     }
 
     /**
@@ -214,10 +211,10 @@ class RzSearchExtension extends Extension
 
         $container->setParameter('rz_search.settings.search.controller.search',                 $config['search']['controller']['search']);
         $container->setParameter('rz_search.settings.search.controller.ajax',                   $config['search']['controller']['ajax']);
-
     }
 
-    public function configureIndexManager($config, ContainerBuilder $container) {
+    public function configureIndexManager($config, ContainerBuilder $container)
+    {
         $container->setParameter('rz_search.manager.solr.index.class', $config['solr']['class']);
     }
 }

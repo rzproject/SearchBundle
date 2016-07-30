@@ -11,17 +11,23 @@
 
 namespace Rz\SearchBundle\Processor\Model;
 
-use  Rz\SearchBundle\Model\ConfigManagerInterface;
+use Rz\SearchBundle\Model\ConfigManagerInterface;
 
 class AbstractProcessor implements ProcessorInterface
 {
     protected $configManager;
 
-    public function process($configKey, $entity, $options=[]){}
+    public function process($configKey, $entity, $options=[])
+    {
+    }
 
-    public function fetchData($criteria = []){}
+    public function fetchData($criteria = [])
+    {
+    }
 
-    public function fetchAllData($criteria = []){}
+    public function fetchAllData($criteria = [])
+    {
+    }
 
     /**
      * @return mixed
@@ -39,4 +45,3 @@ class AbstractProcessor implements ProcessorInterface
         $this->configManager = $configManager;
     }
 }
-

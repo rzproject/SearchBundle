@@ -32,7 +32,8 @@ abstract class AbstractController extends Controller
         $this->init();
     }
 
-    protected function init() {
+    protected function init()
+    {
         $this->slugify = $this->get($this->container->getParameter('rz_search.slugify_service'));
         $this->queryVar = $this->slugify->slugify($this->container->getParameter('rz_search.settings.search.variables.search_query'), '_');
         $this->configManager = $this->get('rz_search.manager.config');
@@ -171,11 +172,12 @@ abstract class AbstractController extends Controller
         $this->templates = $templates;
     }
 
-    public function getSearchClient($configKey) {
+    public function getSearchClient($configKey)
+    {
         $clientName = sprintf('solarium.client.%s', $configKey);
         $searchClient = $this->container->has($clientName) ? $this->get($clientName) : null;
 
-        if(!$searchClient) {
+        if (!$searchClient) {
             return null;
         }
 
@@ -198,7 +200,8 @@ abstract class AbstractController extends Controller
         $this->defaultIdentifier = $defaultIdentifier;
     }
 
-    public function getDefaultTemplates($engine = 'solr') {
+    public function getDefaultTemplates($engine = 'solr')
+    {
         $templates = $this->container->getParameter('rz_search.settings.search.variables.templates');
         if (isset($templates[$engine])) {
             return $templates[$engine];
@@ -206,9 +209,10 @@ abstract class AbstractController extends Controller
         return null;
     }
 
-    public function getDefaultTemplate($key, $engine='solr') {
+    public function getDefaultTemplate($key, $engine='solr')
+    {
         $templates = $this->getDefaultTemplates($engine);
-        if(!$templates) {
+        if (!$templates) {
             return null;
         }
         return $templates[$key];

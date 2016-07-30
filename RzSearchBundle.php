@@ -16,7 +16,6 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Rz\SearchBundle\DependencyInjection\Compiler\OverrideServiceCompilerPass;
 use Rz\SearchBundle\DependencyInjection\Compiler\ModelProcessorCompilerPass;
 
-
 class RzSearchBundle extends Bundle
 {
     /**

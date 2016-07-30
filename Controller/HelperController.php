@@ -14,7 +14,8 @@ class HelperController extends AbstractController
 {
     protected $router;
 
-    protected function init() {
+    protected function init()
+    {
         parent::init();
         $this->router = $this->get('router');
     }
@@ -28,7 +29,6 @@ class HelperController extends AbstractController
      */
     public function fetchDataAction(Request $request)
     {
-
         $search = $request->query->get($this->getQueryVar()) ?: null;
         $configKey = $request->query->get('type');
 
@@ -39,7 +39,7 @@ class HelperController extends AbstractController
 
         $page = (int) $request->query->get('page') ?: 1;
 
-        if(!$configKey || $configKey === '') {
+        if (!$configKey || $configKey === '') {
             return new JsonResponse(array('status' => 'KO', 'message' => $this->getTranslator()->trans('rz_search.controller.error.invalid_type', array(),  'RzSearchBundle')));
         }
 
@@ -47,7 +47,7 @@ class HelperController extends AbstractController
             return new JsonResponse(array('status' => 'KO', 'message' => $this->getTranslator()->trans('rz_search.controller.error.no_search_query', array(),  'RzSearchBundle')));
         }
 
-        if ($search === NULL) {
+        if ($search === null) {
             return new JsonResponse(array('status' => 'KO', 'message' => $this->getTranslator()->trans('rz_search.controller.error.no_search_result', array(),  'RzSearchBundle')));
         }
 
@@ -56,10 +56,9 @@ class HelperController extends AbstractController
 
 
         if ($this->getIsIndexEngineEnabled()) {
-
             $searchClient = $this->getSearchClient($configKey);
 
-            if(!$searchClient) {
+            if (!$searchClient) {
                 return new JsonResponse(array('status' => 'KO', 'message' => $this->getTranslator()->trans('rz_search.controller.error.invalid_type', array(),  'RzSearchBundle')));
             }
 
@@ -70,7 +69,7 @@ class HelperController extends AbstractController
             $hl->setFields('*');
             $hl->setSimplePrefix('<span class="label label-success">');
             $hl->setSimplePostfix('</span>');
-            $query->setQuery(sprintf('text:%s',$search));
+            $query->setQuery(sprintf('text:%s', $search));
 
             // set start and rows param (comparable to SQL limit) using fluent interface
 
@@ -84,7 +83,7 @@ class HelperController extends AbstractController
                                                       'type'       =>$configKey));
 
             $url = null;
-            if($pager->haveToPaginate() && $pager->hasNextPage()) {
+            if ($pager->haveToPaginate() && $pager->hasNextPage()) {
                 $url = $this->getRouter()->generate('rz_search_helper_fetch_data',
                                                     array('type'=>$configKey, 'page'=>$pager->getNextPage(), $this->getQueryVar()=>$search),
                                                     UrlGeneratorInterface::ABSOLUTE_URL);
